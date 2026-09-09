@@ -5,7 +5,7 @@
    it is read out of the DOM at call time:
 
      <section data-dir="projects">        becomes  ~/projects
-       <article data-node="sentinel">     becomes  ~/projects/sentinel
+       <article data-node="ReqFlow">      becomes  ~/projects/ReqFlow
 
    So the terminal can never drift out of sync with the page content.
    ========================================================================== */

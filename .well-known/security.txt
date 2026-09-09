@@ -1,0 +1,11 @@
+# Security contact for tylergunn.me
+# https://www.rfc-editor.org/rfc/rfc9116
+
+Contact: mailto:tylerjgunn@gmail.com
+Expires: 2027-09-01T00:00:00.000Z
+Preferred-Languages: en
+Canonical: https://tylergunn.me/.well-known/security.txt
+
+# If you have found an issue with this site or anything I maintain, please get
+# in touch. I will acknowledge within a few days and will not take action
+# against anyone reporting in good faith.

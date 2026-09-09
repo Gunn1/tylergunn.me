@@ -419,6 +419,7 @@ PAGE = """<!DOCTYPE html>
 <meta name="twitter:card" content="summary_large_image">
 
 <link rel="icon" href="/assets/img/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" sizes="180x180" href="/assets/img/apple-touch-icon.png">
 <link rel="alternate" type="application/atom+xml" title="Tyler Gunn &mdash; Writing" href="/feed.xml">
 <meta name="theme-color" content="#08090b" media="(prefers-color-scheme: dark)">
 <meta name="theme-color" content="#fcfcfb" media="(prefers-color-scheme: light)">
@@ -881,7 +882,10 @@ PUBLISH = [
     "_redirects",
     "assets",
     "writing",
+    ".well-known",
 ]
+
+SECURITY_TXT = ROOT / ".well-known" / "security.txt"
 
 # Files that would be a problem if they ever showed up in dist/.
 NEVER_PUBLISH = {".git", ".env", ".writeup", "content", "build.py", "ctftime.py", "writeup.py"}
@@ -908,10 +912,39 @@ def assemble_dist(quiet: bool = False) -> int:
         if rel.parts[0] in NEVER_PUBLISH:
             raise BuildError(f"refusing to publish {rel} — it is in NEVER_PUBLISH")
 
+    check_security_txt(quiet=quiet)
+
     count = sum(1 for p in DIST.rglob("*") if p.is_file())
     if not quiet:
         print(f"  bundled  dist/ ({count} files)")
     return count
+
+
+def check_security_txt(quiet: bool = False) -> None:
+    """Warn before the RFC 9116 Expires date passes.
+
+    An expired security.txt is worse than none — a researcher reads it as a
+    signal the contact is stale — and nothing else would ever remind you.
+    """
+    if not SECURITY_TXT.exists():
+        return
+
+    m = re.search(r"^Expires:\s*(\S+)", SECURITY_TXT.read_text(encoding="utf-8"), re.M)
+    if not m:
+        raise BuildError(".well-known/security.txt has no Expires field (RFC 9116 requires it)")
+
+    try:
+        expires = dt.datetime.fromisoformat(m.group(1).replace("Z", "+00:00"))
+    except ValueError as exc:
+        raise BuildError(f"security.txt: bad Expires value {m.group(1)!r}") from exc
+
+    days = (expires - dt.datetime.now(dt.timezone.utc)).days
+    if days < 0:
+        raise BuildError(
+            f"security.txt expired {abs(days)} days ago — update Expires before deploying"
+        )
+    if days < 30 and not quiet:
+        print(f"  WARNING  security.txt expires in {days} days — update it")
 
 
 NAV_START = "<!-- nav:start -->"
