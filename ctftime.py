@@ -40,7 +40,10 @@ ROOT = Path(__file__).resolve().parent
 CACHE = ROOT / "content" / "ctf.json"
 INDEX = ROOT / "index.html"
 
-# Teams to include, in the order they should be credited.
+# Teams to include. Add or remove entries here and re-run — the numeric ID is
+# the last part of the team's CTFtime URL (ctftime.org/team/<id>).
+# Removing a team drops its events from the site on the next run, including
+# from the cached --offline path.
 TEAMS: dict[int, str] = {
     183633: "StormChasers",
     370924: "Drop Tables Crew",
@@ -216,8 +219,17 @@ def main() -> int:
         if args.offline:
             if not CACHE.exists():
                 raise CTFError(f"no cache at {CACHE} — run without --offline first")
-            rows = json.loads(CACHE.read_text(encoding="utf-8"))
-            print(f"loaded {len(rows)} cached result(s)")
+            cached = json.loads(CACHE.read_text(encoding="utf-8"))
+            # Re-apply the team filter, so dropping a team from TEAMS takes
+            # effect offline too rather than silently reusing stale rows.
+            rows = [r for r in cached if r.get("team_id") in TEAMS]
+            dropped = len(cached) - len(rows)
+            print(
+                f"loaded {len(rows)} cached result(s)"
+                + (f" ({dropped} filtered out — not in TEAMS)" if dropped else "")
+            )
+            if not rows:
+                raise CTFError("no cached results match TEAMS — re-run without --offline")
         else:
             print(f"scanning CTFtime results {args.since}..{dt.date.today().year}")
             rows = fetch(args.since)
