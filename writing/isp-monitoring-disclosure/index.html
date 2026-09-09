@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Finding a critical attack chain in an ISP&#x27;s monitoring platform &mdash; Tyler Gunn</title>
+<meta name="description" content="A regional ISP&#x27;s LibreNMS portal was three years behind on patches. I replicated the stack in a lab, chained four bugs from customer account to root, and disclosed it. They rebuilt the whole server in a week.">
+<link rel="canonical" href="https://tylergunn.me/writing/isp-monitoring-disclosure/">
+
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://tylergunn.me/writing/isp-monitoring-disclosure/">
+<meta property="og:title" content="Finding a critical attack chain in an ISP&#x27;s monitoring platform">
+<meta property="og:description" content="A regional ISP&#x27;s LibreNMS portal was three years behind on patches. I replicated the stack in a lab, chained four bugs from customer account to root, and disclosed it. They rebuilt the whole server in a week.">
+<meta property="article:published_time" content="2026-03-01">
+<meta name="twitter:card" content="summary_large_image">
+
+<link rel="icon" href="/assets/img/favicon.svg" type="image/svg+xml">
+<link rel="alternate" type="application/atom+xml" title="Tyler Gunn &mdash; Writing" href="/feed.xml">
+<meta name="theme-color" content="#08090b" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#fcfcfb" media="(prefers-color-scheme: light)">
+
+<link rel="stylesheet" href="/assets/css/style.css">
+<link rel="stylesheet" href="/assets/css/terminal.css">
+<script src="/assets/js/theme-init.js"></script>
+
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"BlogPosting","headline":"Finding a critical attack chain in an ISP&#x27;s monitoring platform",
+"datePublished":"2026-03-01","author":{"@type":"Person","name":"Tyler Gunn",
+"url":"https://tylergunn.me"},"mainEntityOfPage":"https://tylergunn.me/writing/isp-monitoring-disclosure/"}
+</script>
+</head>
+
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+
+<header class="site-header" id="site-header">
+  <div class="wrap site-header__inner">
+    <a class="brand" href="/">
+      <span class="brand__mark" aria-hidden="true">tg</span>
+      <span>tylergunn.me</span>
+      <span class="brand__caret" aria-hidden="true">_</span>
+    </a>
+    <nav class="nav" aria-label="Primary">
+      <a class="nav__link" href="/#work">work</a>
+      <a class="nav__link" href="/writing/" aria-current="true">writing</a>
+      <a class="nav__link" href="/#about">about</a>
+      <a class="nav__link" href="/#contact">contact</a>
+    </nav>
+    <div class="header-actions">
+      <button class="term-trigger" id="term-open" type="button" aria-haspopup="dialog">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+             stroke-linecap="round" stroke-linejoin="round" width="15" height="15" aria-hidden="true">
+          <polyline points="4 17 10 11 4 5"></polyline>
+          <line x1="12" y1="19" x2="20" y2="19"></line>
+        </svg>
+        <span class="term-trigger__label">terminal</span>
+        <span class="term-trigger__key" aria-hidden="true">`</span>
+      </button>
+      <button class="icon-btn theme-toggle" id="theme-toggle" type="button" aria-label="Toggle colour theme">
+        <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+             stroke-linecap="round" aria-hidden="true">
+          <circle cx="12" cy="12" r="4"></circle>
+          <path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"></path>
+        </svg>
+        <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"></path>
+        </svg>
+      </button>
+    </div>
+  </div>
+</header>
+
+<main id="main" class="section wrap" data-dir="writing">
+  <article class="article" data-node="isp-monitoring-disclosure" data-node-href="/writing/isp-monitoring-disclosure/">
+    <div class="article__head">
+      <p class="eyebrow"><span class="sigil">~/</span>writing</p>
+      <h1 class="article__title">Finding a critical attack chain in an ISP&#x27;s monitoring platform</h1>
+      <div class="article__meta">
+        <time datetime="2026-03-01">2026-03-01</time>
+        <span>&middot;</span>
+        <span>6 min read</span>
+        <span class="post__tags" style="margin:0"><span class="tag">security research</span><span class="tag">disclosure</span><span class="tag">librenms</span><span class="tag">php</span></span>
+      </div>
+    </div>
+
+    <div class="article__body">
+<p>During routine use of a network monitoring portal provided by a regional ISP, I noticed the platform was advertising its own version numbers on the About page — and they were old. Three years old.</p>
+<p>I built an isolated replica of their stack, validated a complete attack chain from a low-privilege customer account to full server compromise, and reported it. The ISP rebuilt their entire monitoring infrastructure within a week.</p>
+<p>No testing of any kind was performed against the production system.</p>
+<h2 id="engagement-summary">Engagement summary</h2>
+<div class="table-wrap"><table><thead><tr><th>Detail</th><th>Description</th></tr></thead><tbody><tr><td>Target</td><td>LibreNMS network monitoring platform operated by a regional ISP</td></tr><tr><td>Scope</td><td>Application-layer vulnerabilities and attack chain validation</td></tr><tr><td>Approach</td><td>Source code review, isolated lab replication, exploit development</td></tr><tr><td>Access level</td><td>Low-privilege customer account (read-only, single port)</td></tr><tr><td>Environment</td><td>Isolated QEMU/KVM virtual machines; zero production testing</td></tr><tr><td>Outcome</td><td>Vendor rebuilt entire server stack within one week of disclosure</td></tr><tr><td>Severity</td><td>Critical</td></tr></tbody></table></div>
+<h2 id="the-target">The target</h2>
+<p>The ISP issued customer accounts to their LibreNMS instance so we could monitor our own circuits. The About page disclosed detailed version information to any authenticated user, and the stack was significantly out of date:</p>
+<div class="table-wrap"><table><thead><tr><th>Component</th><th>Observed version</th><th>Status</th></tr></thead><tbody><tr><td>LibreNMS</td><td>22.9.0</td><td>3+ years behind</td></tr><tr><td>PHP</td><td>7.4.10</td><td>EOL since Nov 2022</td></tr><tr><td>Apache</td><td>2.4.29</td><td>35+ missing security updates</td></tr><tr><td>Ubuntu</td><td>18.04 LTS</td><td>EOL standard support May 2023</td></tr><tr><td>MariaDB</td><td>10.5.9</td><td>Multiple updates pending</td></tr><tr><td>Laravel</td><td>8.83.23</td><td>End of life</td></tr><tr><td>Python</td><td>3.6.9</td><td>EOL since Dec 2021</td></tr></tbody></table></div>
+<p>The platform monitored 17 devices across the ISP's backbone — 1,175 ports, 350 sensors, 282 IPv4 addresses. A Weathermap plugin exposed the full backbone topology to every authenticated user, customer accounts included.</p>
+<h2 id="building-the-lab">Building the lab</h2>
+<p>Everything was validated in an isolated VM environment. Matching the production stack exactly mattered, because a bug that reproduces on PHP 8.3 tells you nothing about what is running on 7.4.10.</p>
+<div class="table-wrap"><table><thead><tr><th>VM</th><th>Role</th><th>Address</th><th>OS</th></tr></thead><tbody><tr><td>LibreNMS server</td><td>Target replica</td><td>192.168.100.10</td><td>Ubuntu 18.04.6 LTS</td></tr><tr><td>VyOS router</td><td>Monitored device</td><td>192.168.100.2</td><td>VyOS Rolling</td></tr><tr><td>Kali Linux</td><td>Attack machine</td><td>192.168.100.50</td><td>Kali Linux</td></tr><tr><td>Host</td><td>Listener / C2</td><td>192.168.100.1</td><td>Arch Linux</td></tr></tbody></table></div>
+<h3 id="compiling-php-7410-from-source">Compiling PHP 7.4.10 from source</h3>
+<p>Both the ondrej PPA and sury.org had dropped Bionic and PHP 7.4 support entirely, so there was no package to install. I pulled the exact 7.4.10 source tarball from php.net and compiled it with every extension LibreNMS needs — GD, MySQL, SNMP, LDAP, cURL — which surfaced the <code>--with-gd</code> to <code>--enable-gd</code> flag rename introduced in 7.4.</p>
+<h3 id="apache-and-laravel">Apache and Laravel</h3>
+<p><code>mod_php</code> requires the prefork MPM, not the default event MPM. The symptom was an Apache error log line reading "Apache is running a threaded MPM" followed by a crash.</p>
+<p>Composer also pulled updated Laravel packages that were incompatible with LibreNMS 22.9.0 — an <code>Exception</code> versus <code>Throwable</code> signature mismatch in the exception handler, patched in <code>Handler.php</code>.</p>
+<h3 id="a-real-monitored-device">A real monitored device</h3>
+<p>The VyOS router provided realistic SNMP data: multiple interfaces, routing tables, and proper MIB responses, so LibreNMS discovered genuine ports with traffic statistics rather than empty stubs. The customer account was configured as Level 1 with visibility restricted to a single port, mirroring the ISP's access model.</p>
+<h2 id="what-the-source-review-found">What the source review found</h2>
+<p><strong>Broken access control.</strong> An AJAX endpoint accepted write operations from any authenticated user without checking whether that user had permission to modify the target resource. The source file contained no access control checks at all.</p>
+<p><strong>Stored cross-site scripting.</strong> Port description fields were rendered without <code>htmlspecialchars()</code> in the interface display template — while adjacent fields, like the event message, were properly escaped. A second vector existed in the eventlog type field via <code>formatType()</code>.</p>
+<p><strong>SQL injection.</strong> Two unsanitized concatenation points in the address search functionality: the IPv6 prefix and MAC address parameters used direct string interpolation rather than parameterized queries.</p>
+<p><strong>Remote code execution.</strong> The Blade template engine processed alert templates without sandboxing, so an <code>@php</code> directive in a template executed arbitrary system commands.</p>
+<h2 id="the-chain">The chain</h2>
+<p>Individually these are findings. Chained, they take a read-only customer account to root on a box holding credentials for the ISP's backbone.</p>
+<ol><li><strong>Authenticate</strong> as a restricted customer — visibility limited to a single port.</li><li><strong>Broken access control</strong> — write an XSS payload into <em>any</em> port's description via the unprotected AJAX endpoint.</li><li><strong>Stored XSS fires</strong> when an admin views the device page and the unsanitized field renders.</li><li><strong>Session hijack</strong> — the payload loads remote JavaScript from my server and uses the admin's session to create a malicious alert template.</li><li><strong>RCE</strong> — the Blade template's <code>@php system()</code> directive executes as <code>www-data</code>, giving a reverse shell.</li><li><strong>Post-exploitation</strong> — extract database credentials, application secrets, bcrypt password hashes, and plaintext SNMP community strings.</li></ol>
+<p>The pivot from step 2 is the interesting part. The account was scoped to one port, but the endpoint never checked that scope on write — so the restriction was purely a display-layer concern.</p>
+<h2 id="impact">Impact</h2>
+<div class="table-wrap"><table><thead><tr><th>Data</th><th>Consequence</th></tr></thead><tbody><tr><td>Database credentials</td><td>Full access to the application database</td></tr><tr><td>Application secret key</td><td>Decrypt any Laravel encrypted value</td></tr><tr><td>Password hashes</td><td>Bcrypt hashes extractable for offline cracking</td></tr><tr><td>SNMP community strings</td><td>Plaintext credentials for all 17 backbone devices</td></tr><tr><td>Network topology</td><td>Complete infrastructure map via SNMP enumeration</td></tr><tr><td>VAPID keys</td><td>Push notification signing keys</td></tr></tbody></table></div>
+<p>Two local privilege escalation paths were also available: the alert processing script run by cron every minute was writable by the web server user through shared group membership, and the installed PolicyKit version was worth checking against CVE-2021-4034.</p>
+<p>The SNMP community strings are the finding that matters most. With those, an attacker enumerates the ISP's entire network — routing tables, interface configurations, ARP tables, traffic statistics, optical signal levels on fiber links. The monitoring platform was a single point of compromise for the visibility layer of the whole backbone.</p>
+<h2 id="disclosure">Disclosure</h2>
+<p>The initial report was a high-level overview of the vulnerabilities and their impact, deliberately without exploit code or step-by-step reproduction. A detailed technical report with proof-of-concept material was written and held in reserve, to be shared only if their engineers asked for it.</p>
+<p>The vendor acknowledged the same day — <em>"We'll be remediating in short order"</em> — and then did considerably more than patch:</p>
+<div class="table-wrap"><table><thead><tr><th>Component</th><th>Before</th><th>After</th></tr></thead><tbody><tr><td>LibreNMS</td><td>22.9.0</td><td>26.4.1-dev</td></tr><tr><td>PHP</td><td>7.4.10 (EOL)</td><td>8.3.6</td></tr><tr><td>Web server</td><td>Apache 2.4.29</td><td>nginx 1.24.0</td></tr><tr><td>MariaDB</td><td>10.5.9</td><td>10.11.14</td></tr><tr><td>Laravel</td><td>8.83.23</td><td>12.48.1</td></tr><tr><td>Python</td><td>3.6.9 (EOL)</td><td>3.12.3</td></tr><tr><td>OS</td><td>Ubuntu 18.04 (EOL)</td><td>Ubuntu 24.04 LTS</td></tr></tbody></table></div>
+<p>They rebuilt the server from scratch on a current OS with every component on a supported version. That is the right response and a rarer one than it should be.</p>
+<h2 id="what-i-took-from-it">What I took from it</h2>
+<p>The vulnerabilities were not novel. Every one of them was a known class, in a known-outdated version, discoverable by reading the source. What made the assessment worth doing was the discipline around it: replicating the stack exactly rather than assuming, validating the full chain rather than reporting four separate findings, and testing nothing in production.</p>
+<p>The version disclosure on the About page is what started all of it. A monitoring platform that tells every customer exactly how far behind it is has already given away the first step.</p>
+    </div>
+
+    <div class="article__foot">
+      <a class="btn btn--ghost" href="/writing/">&larr; All posts</a>
+      <a class="btn btn--ghost" href="/#contact">Get in touch</a>
+    </div>
+  </article>
+</main>
+
+<footer class="site-footer">
+  <div class="wrap site-footer__inner">
+    <p>&copy; <span id="year">2026</span> Tyler Gunn &mdash; built by hand, no frameworks.</p>
+    <p>Press <kbd>`</kbd> for a terminal &middot; <a href="/feed.xml">RSS</a></p>
+  </div>
+</footer>
+
+<div class="term" id="term" data-open="false" role="dialog" aria-modal="true"
+     aria-label="Site terminal" aria-hidden="true">
+  <div class="term__window">
+    <div class="term__bar">
+      <div class="term__dots" aria-hidden="true">
+        <span class="term__dot term__dot--close"></span>
+        <span class="term__dot term__dot--min"></span>
+        <span class="term__dot term__dot--max"></span>
+      </div>
+      <span class="term__title">tyler@gunn &mdash; bash &mdash; 80&times;24</span>
+      <button class="term__close" id="term-close" type="button" aria-label="Close terminal">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+             stroke-linecap="round" aria-hidden="true">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+    </div>
+    <div class="term__body" id="term-body" tabindex="0" role="log" aria-live="polite"></div>
+    <form class="term__prompt-row" id="term-form" autocomplete="off">
+      <label class="term__ps1" for="term-input">
+        tyler@gunn<span class="d">:</span><span class="path" id="term-path">~</span><span class="d">$</span>
+      </label>
+      <input class="term__input" id="term-input" name="cmd" type="text"
+             placeholder="type 'help' to get started"
+             autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
+             aria-label="Terminal input">
+    </form>
+    <div class="term__hint">
+      <span><kbd>Tab</kbd> complete</span>
+      <span><kbd>&uarr;</kbd><kbd>&darr;</kbd> history</span>
+      <span><kbd>Ctrl</kbd>+<kbd>L</kbd> clear</span>
+      <span><kbd>Esc</kbd> close</span>
+    </div>
+  </div>
+</div>
+
+<script src="/assets/js/site.js" defer></script>
+<script src="/assets/js/terminal.js" defer></script>
+</body>
+</html>

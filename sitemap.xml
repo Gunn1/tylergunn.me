@@ -9,15 +9,7 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://tylergunn.me/writing/heap-overflow-ctf/</loc>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://tylergunn.me/writing/asyncio-recon/</loc>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://tylergunn.me/writing/hardening-homelab/</loc>
+    <loc>https://tylergunn.me/writing/isp-monitoring-disclosure/</loc>
     <priority>0.7</priority>
   </url>
 </urlset>

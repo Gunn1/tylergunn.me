@@ -394,7 +394,13 @@ def main() -> int:
         prog="writeup",
         description="Record notes while you work; assemble a writeup draft afterwards.",
     )
-    ap.add_argument("-s", "--session", help="act on this session instead of the active one")
+    # -s lives on each subcommand rather than the top level, so it reads the
+    # way people actually type it: `writeup drop -s foo`, not `writeup -s foo drop`.
+    common = argparse.ArgumentParser(add_help=False)
+    common.add_argument(
+        "-s", "--session", help="act on this session instead of the active one"
+    )
+
     sub = ap.add_subparsers(dest="cmd", required=True)
 
     p = sub.add_parser("start", help="start or resume a session")
@@ -404,7 +410,7 @@ def main() -> int:
     p.add_argument("--force", action="store_true", help="restart even if it exists")
     p.set_defaults(fn=cmd_start)
 
-    p = sub.add_parser("note", help="record a note")
+    p = sub.add_parser("note", help="record a note", parents=[common])
     p.add_argument("text", nargs="*")
     g = p.add_mutually_exclusive_group()
     g.add_argument("--fail", action="store_true", help="file under Dead ends")
@@ -412,27 +418,27 @@ def main() -> int:
     g.add_argument("--takeaway", action="store_true", help="file under Takeaways")
     p.set_defaults(fn=cmd_note)
 
-    p = sub.add_parser("code", help="capture a file or line range")
+    p = sub.add_parser("code", help="capture a file or line range", parents=[common])
     p.add_argument("path", help="path, optionally file.py:40 or file.py:40-58")
     p.add_argument("--lang", help="override the fence language")
     p.add_argument("--caption", help="override the caption")
     p.set_defaults(fn=cmd_code)
 
-    p = sub.add_parser("run", help="run a command and capture it with its output")
+    p = sub.add_parser("run", help="run a command and capture it with its output", parents=[common])
     p.add_argument("command", nargs=argparse.REMAINDER)
     p.set_defaults(fn=cmd_run)
 
-    p = sub.add_parser("status", help="show what has been recorded")
+    p = sub.add_parser("status", help="show what has been recorded", parents=[common])
     p.set_defaults(fn=cmd_status)
 
     p = sub.add_parser("list", help="list all sessions")
     p.set_defaults(fn=cmd_list)
 
-    p = sub.add_parser("drop", help="delete a session")
+    p = sub.add_parser("drop", help="delete a session", parents=[common])
     p.add_argument("--yes", action="store_true")
     p.set_defaults(fn=cmd_drop)
 
-    p = sub.add_parser("build", help="write the draft into content/writeups/")
+    p = sub.add_parser("build", help="write the draft into content/writeups/", parents=[common])
     p.add_argument("--title", help="set the title as you build")
     p.add_argument("--tags", help="set the tags as you build")
     p.add_argument("--force", action="store_true", help="overwrite an existing draft")

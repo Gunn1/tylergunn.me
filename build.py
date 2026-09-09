@@ -55,6 +55,14 @@ POSTS_END = "<!-- posts:end -->"
 PROJECTS_START = "<!-- projects:start -->"
 PROJECTS_END = "<!-- projects:end -->"
 
+# The whole writing section on the home page, plus its nav link. Both are
+# emitted only when there is something published — an empty "Notes & writeups"
+# heading reads as abandoned, so the section removes itself instead.
+WRITING_START = "<!-- writing:start -->"
+WRITING_END = "<!-- writing:end -->"
+WRITING_NAV_START = "<!-- writing-nav:start -->"
+WRITING_NAV_END = "<!-- writing-nav:end -->"
+
 HOME_POST_LIMIT = 3
 
 
@@ -671,11 +679,40 @@ def render_projects(projects: list[dict]) -> str:
     return "\n\n".join(cards)
 
 
+WRITING_SECTION = """  <!-- ================= WRITING ================= -->
+  <section class="section wrap" id="writing" data-dir="writing">
+    <div class="section__head" data-reveal>
+      <div>
+        <p class="eyebrow"><span class="sigil">~/</span>writing</p>
+        <h2 class="section__title">Notes &amp; writeups</h2>
+        <p class="section__lede">
+          Long-form notes on things I've broken, built, or had to learn the hard way.
+        </p>
+      </div>
+      <a class="btn btn--ghost" href="/writing/">All posts &rarr;</a>
+    </div>
+
+    <ul class="post-list" data-reveal>
+{posts}
+    </ul>
+  </section>"""
+
+WRITING_NAV = '<a class="nav__link" href="#writing">writing</a>'
+
+
+def render_writing_section(posts: list[Post]) -> str:
+    """The home page writing block, or nothing at all if there are no posts."""
+    if not posts:
+        return ""
+    return WRITING_SECTION.format(posts=render_post_list(posts))
+
+
 def splice(
     path: Path,
     replacement: str,
     start: str = POSTS_START,
     end: str = POSTS_END,
+    indent: str = "      ",
 ) -> bool:
     """Replace the text between two markers. Returns True if the file changed."""
     text = path.read_text(encoding="utf-8")
@@ -687,7 +724,13 @@ def splice(
 
     head, rest = text.split(start, 1)
     _, tail = rest.split(end, 1)
-    updated = f"{head}{start}\n{replacement}\n      {end}{tail}"
+
+    if replacement:
+        updated = f"{head}{start}\n{replacement}\n{indent}{end}{tail}"
+    else:
+        # Nothing to emit — collapse the markers onto one line so the empty
+        # region does not leave a gap in the output.
+        updated = f"{head}{start}{end}{tail}"
 
     if updated == text:
         return False
@@ -731,7 +774,10 @@ def render_feed(posts: list[Post]) -> str:
 
 
 def render_sitemap(posts: list[Post]) -> str:
-    urls = [(f"{SITE_URL}/", "1.0"), (f"{SITE_URL}/writing/", "0.8")]
+    urls = [(f"{SITE_URL}/", "1.0")]
+    # Don't advertise an index with nothing in it.
+    if posts:
+        urls.append((f"{SITE_URL}/writing/", "0.8"))
     urls += [(p.abs_url, "0.7") for p in posts]
     body = "\n".join(
         f"  <url>\n    <loc>{loc}</loc>\n    <priority>{pri}</priority>\n  </url>"
@@ -750,8 +796,9 @@ def render_sitemap(posts: list[Post]) -> str:
 
 
 def load_posts(include_drafts: bool = False) -> list[Post]:
-    if not SRC.is_dir():
-        raise BuildError(f"no source directory: {SRC}")
+    # No directory means no posts, not an error — deleting the last writeup
+    # removes the directory, and that is a valid state for the site to be in.
+    SRC.mkdir(parents=True, exist_ok=True)
 
     posts = [load_post(p) for p in sorted(SRC.glob("*.md"))]
 
@@ -794,8 +841,24 @@ def build(include_drafts: bool = False, quiet: bool = False) -> list[Post]:
 
     if splice(OUT / "index.html", render_post_list(posts)):
         say("  updated  writing/index.html")
-    if splice(ROOT / "index.html", render_post_list(posts[:HOME_POST_LIMIT])):
-        say("  updated  index.html (posts)")
+
+    home = ROOT / "index.html"
+    if splice(
+        home,
+        render_writing_section(posts[:HOME_POST_LIMIT]),
+        WRITING_START,
+        WRITING_END,
+        indent="  ",
+    ):
+        say(f"  updated  index.html (writing section: {'shown' if posts else 'hidden'})")
+
+    if splice(
+        home,
+        WRITING_NAV if posts else "",
+        WRITING_NAV_START,
+        WRITING_NAV_END,
+    ):
+        say(f"  updated  index.html (nav link: {'shown' if posts else 'hidden'})")
 
     if splice(
         ROOT / "index.html",
