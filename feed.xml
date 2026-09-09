@@ -5,17 +5,11 @@
   <link href="https://tylergunn.me/feed.xml" rel="self"/>
   <link href="https://tylergunn.me/"/>
   <id>https://tylergunn.me/</id>
-  <updated>2026-03-01T00:00:00Z</updated>
+  <updated>2026-09-08T00:00:00Z</updated>
   <author>
     <name>Tyler Gunn</name>
     <uri>https://tylergunn.me</uri>
   </author>
 
-  <entry>
-    <title>Finding a critical attack chain in an ISP's monitoring platform</title>
-    <link href="https://tylergunn.me/writing/isp-monitoring-disclosure/"/>
-    <id>https://tylergunn.me/writing/isp-monitoring-disclosure/</id>
-    <updated>2026-03-01T00:00:00Z</updated>
-    <summary>A regional ISP's LibreNMS portal was three years behind on patches. I replicated the stack in a lab, chained four bugs from customer account to root, and disclosed it. They rebuilt the whole server in a week.</summary>
-  </entry>
+
 </feed>

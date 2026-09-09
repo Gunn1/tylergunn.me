@@ -60,14 +60,10 @@ PROJECTS_END = "<!-- projects:end -->"
 # heading reads as abandoned, so the section removes itself instead.
 WRITING_START = "<!-- writing:start -->"
 WRITING_END = "<!-- writing:end -->"
-WRITING_NAV_START = "<!-- writing-nav:start -->"
-WRITING_NAV_END = "<!-- writing-nav:end -->"
 
 # Same self-hiding treatment for the security section.
 SECURITY_START = "<!-- security:start -->"
 SECURITY_END = "<!-- security:end -->"
-SECURITY_NAV_START = "<!-- security-nav:start -->"
-SECURITY_NAV_END = "<!-- security-nav:end -->"
 SECURITY_TOML = ROOT / "content" / "security.toml"
 
 HOME_POST_LIMIT = 3
@@ -335,10 +331,7 @@ HEADER = """<header class="site-header" id="site-header">
       <span class="brand__caret" aria-hidden="true">_</span>
     </a>
     <nav class="nav" aria-label="Primary">
-      <a class="nav__link" href="/#work">work</a>
-      <a class="nav__link" href="/writing/" aria-current="true">writing</a>
-      <a class="nav__link" href="/#about">about</a>
-      <a class="nav__link" href="/#contact">contact</a>
+{nav}
     </nav>
     <div class="header-actions">
       <button class="term-trigger" id="term-open" type="button" aria-haspopup="dialog">
@@ -481,7 +474,7 @@ PAGE = """<!DOCTYPE html>
 """
 
 
-def render_post_page(post: Post) -> str:
+def render_post_page(post: Post, nav: str) -> str:
     tags_html = "".join(
         f'<span class="tag">{html.escape(t)}</span>' for t in post.tags
     )
@@ -498,7 +491,7 @@ def render_post_page(post: Post) -> str:
         minutes=post.reading_minutes,
         tags_html=tags_html,
         body=markdown_to_html(post.body_md),
-        header=HEADER,
+        header=HEADER.format(nav=nav),
         footer=FOOTER.format(year=dt.date.today().year),
         terminal=TERMINAL,
     )
@@ -846,9 +839,6 @@ def render_security_section(disclosures: list[dict], profiles: list[dict]) -> st
     return SECURITY_SECTION.format(blocks="\n\n".join(blocks))
 
 
-SECURITY_NAV = '<a class="nav__link" href="#security">security</a>'
-
-
 WRITING_SECTION = """  <!-- ================= WRITING ================= -->
   <section class="section wrap" id="writing" data-dir="writing">
     <div class="section__head" data-reveal>
@@ -867,8 +857,41 @@ WRITING_SECTION = """  <!-- ================= WRITING ================= -->
     </ul>
   </section>"""
 
-WRITING_NAV = '<a class="nav__link" href="#writing">writing</a>'
-WRITING_NAV_PAGE = '<a class="nav__link" href="/writing/">writing</a>'
+NAV_START = "<!-- nav:start -->"
+NAV_END = "<!-- nav:end -->"
+
+
+def render_nav(
+    posts: list[Post],
+    has_security: bool,
+    on_home: bool,
+    current: str | None = None,
+) -> str:
+    """The one nav definition. Every page's nav is generated from this, so the
+    home page, /writing/ and the post pages can never drift apart."""
+    p = "" if on_home else "/"
+    show_writing_block = len(posts) >= HOME_WRITING_MIN
+
+    items: list[tuple[str, str]] = [("work", f"{p}#work")]
+    if has_security:
+        items.append(("security", f"{p}#security"))
+    items.append(("ctf", f"{p}#ctf"))
+
+    if posts:
+        # The home page only has a #writing anchor once the block is shown;
+        # otherwise, and from every subpage, point at the index itself.
+        if on_home and show_writing_block:
+            items.append(("writing", "#writing"))
+        else:
+            items.append(("writing", "/writing/"))
+
+    items += [("about", f"{p}#about"), ("contact", f"{p}#contact")]
+
+    out = []
+    for label, href in items:
+        aria = ' aria-current="true"' if current == label else ""
+        out.append(f'      <a class="nav__link" href="{href}"{aria}>{label}</a>')
+    return "\n".join(out)
 
 
 def render_writing_section(posts: list[Post]) -> str:
@@ -1004,15 +1027,20 @@ def build(include_drafts: bool = False, quiet: bool = False) -> list[Post]:
             shutil.rmtree(child)
             say(f"  removed  writing/{child.name}/")
 
+    has_security = bool(disclosures or profiles)
+    post_nav = render_nav(posts, has_security, on_home=False, current="writing")
+
     for post in posts:
         target = OUT / post.slug / "index.html"
         target.parent.mkdir(parents=True, exist_ok=True)
-        target.write_text(render_post_page(post), encoding="utf-8")
+        target.write_text(render_post_page(post, post_nav), encoding="utf-8")
         flag = " [draft]" if post.draft else ""
         say(f"  wrote    {target.relative_to(ROOT)}{flag}")
 
     if splice(OUT / "index.html", render_post_list(posts)):
-        say("  updated  writing/index.html")
+        say("  updated  writing/index.html (posts)")
+    if splice(OUT / "index.html", post_nav, NAV_START, NAV_END):
+        say("  updated  writing/index.html (nav)")
 
     home = ROOT / "index.html"
     show_writing_block = len(posts) >= HOME_WRITING_MIN
@@ -1030,15 +1058,6 @@ def build(include_drafts: bool = False, quiet: bool = False) -> list[Post]:
             + ")"
         )
 
-    if posts:
-        nav = WRITING_NAV if show_writing_block else WRITING_NAV_PAGE
-    else:
-        nav = ""
-    if splice(home, nav, WRITING_NAV_START, WRITING_NAV_END):
-        target = "#writing" if show_writing_block else "/writing/" if posts else "hidden"
-        say(f"  updated  index.html (writing nav: {target})")
-
-    has_security = bool(disclosures or profiles)
     if splice(
         home,
         render_security_section(disclosures, profiles),
@@ -1050,13 +1069,11 @@ def build(include_drafts: bool = False, quiet: bool = False) -> list[Post]:
             f"  updated  index.html (security: {len(disclosures)} disclosure(s), "
             f"{len(profiles)} profile(s))"
         )
-    if splice(
-        home,
-        SECURITY_NAV if has_security else "",
-        SECURITY_NAV_START,
-        SECURITY_NAV_END,
-    ):
-        say(f"  updated  index.html (security nav: {'shown' if has_security else 'hidden'})")
+
+    # One nav definition drives every page, so the home page, /writing/ and the
+    # post pages cannot drift apart the way they did before.
+    if splice(home, render_nav(posts, has_security, on_home=True), NAV_START, NAV_END):
+        say("  updated  index.html (nav)")
 
     if splice(
         ROOT / "index.html",

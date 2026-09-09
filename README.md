@@ -167,11 +167,11 @@ Each Markdown file starts with a front matter block:
 
 ```
 ---
-title: Scanning 65k ports without melting your NIC
-slug: asyncio-recon          # optional, defaults to a slug of the title
-date: 2026-05-02
+title: Finding a critical attack chain in an ISP's monitoring platform
+slug: isp-monitoring-disclosure   # optional, defaults to a slug of the title
+date: 2026-03-01
 description: One sentence for the index and the feed.
-tags: python, asyncio, networking
+tags: security research, disclosure, librenms
 draft: true                  # omit or set false to publish
 ---
 ```
