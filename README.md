@@ -63,6 +63,34 @@ lists, tables, blockquotes, rules, images, links, `inline code`, bold, italic an
 strikethrough. It errors loudly with a file and line number rather than guessing,
 and exits non-zero so a failed build is never published.
 
+## CTF results
+
+`ctftime.py` pulls real results from the CTFtime API into the `#ctf` section and
+the hero stat. Standard library only, same marker-splice approach as `build.py`.
+
+```sh
+python3 ctftime.py              # fetch, cache to content/ctf.json, update index.html
+python3 ctftime.py --offline    # rebuild the HTML from the cache, no network
+python3 ctftime.py --dry-run    # print the table, write nothing
+python3 ctftime.py --since 2020 # widen the scan window (default 2022)
+```
+
+Teams are configured in the `TEAMS` dict at the top of the script.
+
+Some things about the CTFtime API that are not obvious and cost time to work out:
+
+- **There is no endpoint that lists a team's events.** `/api/v1/teams/{id}/`
+  returns aggregate rating per year and nothing else. The event list has to be
+  recovered by scanning `/api/v1/results/{year}/` — every event's full
+  scoreboard — for rows matching your `team_id`. That is what this script does.
+- **The API returns 403 without a browser User-Agent.**
+- **There is no search.** `/search/` 404s, and `/api/v1/teams/` ignores a
+  `search` param, so you need the numeric team ID from the team page URL.
+- **`participants` on an event is CTFtime registrations, not scoreboard size.**
+  Using it for percentiles produces nonsense like "top 733%". The correct
+  denominator is `len(scores)` from the results endpoint.
+- **CTFtime tracks teams, not people.** These are events the *team* scored in.
+
 ## Running it locally
 
 `python3 build.py --serve`, or any static file server:
@@ -132,7 +160,8 @@ for these and swap in your own:
       `cutline`, `this-site`) and their GitHub URLs
 - [ ] **Posts** — the three files in `content/writeups/`. These are invented;
       replace or delete them and run `python3 build.py`
-- [ ] **Stats** — `data-count` values in the hero (years, projects, CTFs)
+- [ ] **Stats** — "Years building" (6) and "Projects shipped" (24) in the hero
+      are still invented. The CTF count is real and maintained by `ctftime.py`
 - [ ] **Bio** — the three paragraphs in `#bio`
 - [ ] **Skills** — the three groups in `.skills`
 - [ ] **Social links** — `github.com/tylergunn`, `linkedin.com/in/tylergunn`

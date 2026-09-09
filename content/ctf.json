@@ -1,0 +1,112 @@
+[
+  {
+    "event_id": 3098,
+    "date": "2026-02-21",
+    "title": "Batman's Kitchen CTF 2026",
+    "team": "Drop Tables Crew",
+    "team_id": 370924,
+    "place": 109,
+    "scored": 525,
+    "weight": 24.24,
+    "url": "https://ctftime.org/event/3098"
+  },
+  {
+    "event_id": 2674,
+    "date": "2025-03-21",
+    "title": "Cyber Apocalypse CTF 2025: Tales from Eldoria",
+    "team": "Drop Tables Crew",
+    "team_id": 370924,
+    "place": 1131,
+    "scored": 4035,
+    "weight": 24.0,
+    "url": "https://ctftime.org/event/2674"
+  },
+  {
+    "event_id": 2364,
+    "date": "2024-05-23",
+    "title": "NahamCon CTF 2024",
+    "team": "StormChasers",
+    "team_id": 183633,
+    "place": 1671,
+    "scored": 2632,
+    "weight": 41.61,
+    "url": "https://ctftime.org/event/2364"
+  },
+  {
+    "event_id": 2023,
+    "date": "2023-06-15",
+    "title": "NahamCon CTF 2023",
+    "team": "StormChasers",
+    "team_id": 183633,
+    "place": 144,
+    "scored": 1682,
+    "weight": 34.82,
+    "url": "https://ctftime.org/event/2023"
+  },
+  {
+    "event_id": 1770,
+    "date": "2023-04-14",
+    "title": "PlaidCTF 2023",
+    "team": "StormChasers",
+    "team_id": 183633,
+    "place": 50,
+    "scored": 600,
+    "weight": 100.0,
+    "url": "https://ctftime.org/event/1770"
+  },
+  {
+    "event_id": 1717,
+    "date": "2022-09-17",
+    "title": "0CTF/TCTF 2022",
+    "team": "StormChasers",
+    "team_id": 183633,
+    "place": 297,
+    "scored": 603,
+    "weight": 100.0,
+    "url": "https://ctftime.org/event/1717"
+  },
+  {
+    "event_id": 1736,
+    "date": "2022-09-10",
+    "title": "ADDA CTF",
+    "team": "StormChasers",
+    "team_id": 183633,
+    "place": 105,
+    "scored": 166,
+    "weight": 0.0,
+    "url": "https://ctftime.org/event/1736"
+  },
+  {
+    "event_id": 1639,
+    "date": "2022-05-14",
+    "title": "Cyber Apocalypse CTF 2022: Intergalactic Chase",
+    "team": "StormChasers",
+    "team_id": 183633,
+    "place": 265,
+    "scored": 3663,
+    "weight": 24.9,
+    "url": "https://ctftime.org/event/1639"
+  },
+  {
+    "event_id": 1599,
+    "date": "2022-05-13",
+    "title": "TJCTF 2022",
+    "team": "StormChasers",
+    "team_id": 183633,
+    "place": 168,
+    "scored": 768,
+    "weight": 24.76,
+    "url": "https://ctftime.org/event/1599"
+  },
+  {
+    "event_id": 1630,
+    "date": "2022-04-28",
+    "title": "NahamCon CTF 2022",
+    "team": "StormChasers",
+    "team_id": 183633,
+    "place": 61,
+    "scored": 3247,
+    "weight": 24.61,
+    "url": "https://ctftime.org/event/1630"
+  }
+]
