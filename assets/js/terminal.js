@@ -106,7 +106,7 @@
   }
 
   // Resolve a user-supplied argument to an entry, searching the cwd first and
-  // then every directory — so `cat sentinel` works from anywhere.
+  // then every directory — so `cat ReqFlow` works from anywhere.
   function resolve(name) {
     if (!name) return null;
     name = name.replace(/^\.\//, '').replace(/\/$/, '');
@@ -454,15 +454,16 @@
     about: 'who is this guy',
     run: function () {
       blank();
-      line('<b>Tyler Gunn</b> <span class="d">— software &amp; security engineer</span>');
+      line('<b>Tyler Gunn</b> <span class="d">— IT project manager · automation · security research</span>');
       blank();
       paragraph(
-        'I build tooling and offensive security software, mostly in Python, and I ' +
-          'spend a lot of time working out how things fail. Understanding how ' +
-          'something is built is the fastest route to understanding how it breaks.'
+        'I manage IT projects at an MSP and build the automation around them — ' +
+          'mostly asset-management integrations in Python. On the side I do ' +
+          'security research: understanding how something is built is the fastest ' +
+          'route to understanding how it breaks.'
       );
       blank();
-      line('<span class="d">Try </span><span class="k">ls</span><span class="d">, </span><span class="k">cat sentinel</span><span class="d">, or </span><span class="k">contact</span><span class="d">.</span>');
+      line('<span class="d">Try </span><span class="k">ls</span><span class="d">, </span><span class="k">cat ReqFlow</span><span class="d">, or </span><span class="k">contact</span><span class="d">.</span>');
       blank();
     }
   });
@@ -475,7 +476,6 @@
       var rows = [
         ['email', 'tylerjgunn@gmail.com', 'mailto:tylerjgunn@gmail.com'],
         ['github', 'github.com/Gunn1', 'https://github.com/Gunn1'],
-        ['linkedin', 'in/tylergunn', 'https://www.linkedin.com/in/tylergunn'],
         ['site', 'tylergunn.me', 'https://tylergunn.me']
       ];
       var html = rows
@@ -797,7 +797,7 @@
       '<span class="d">Type </span><span class="k">help</span><span class="d"> for commands, or try </span>' +
         '<span class="k">whoami</span><span class="d"> · </span>' +
         '<span class="k">ls</span><span class="d"> · </span>' +
-        '<span class="k">cat sentinel</span><span class="d"> · </span>' +
+        '<span class="k">cat ReqFlow</span><span class="d"> · </span>' +
         '<span class="k">neofetch</span>'
     );
     blank();

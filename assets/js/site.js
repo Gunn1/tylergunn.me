@@ -149,9 +149,9 @@
   var roleEl = document.getElementById('role-text');
 
   var ROLES = [
-    'security engineer',
-    'python developer',
-    'breaker of things',
+    'project manager',
+    'automation engineer',
+    'security researcher',
     'writer of small sharp tools'
   ];
 
