@@ -180,6 +180,12 @@ draft: true                  # omit or set false to publish
 home page and `/writing/`, and regenerates `feed.xml` and `sitemap.xml`. Deleting
 a Markdown file removes its generated page on the next build.
 
+The home page's writing block only appears once there are `HOME_WRITING_MIN`
+posts (default 2). With a single post it would show the same item twice — once
+in the security section, once under writing — so below the threshold the block
+is omitted and the nav link points straight at `/writing/` instead. Set the
+constant to 1 in `build.py` if you'd rather always show it.
+
 It rewrites **only** what sits between the `<!-- posts:start -->` and
 `<!-- posts:end -->` markers, so the rest of those two pages stays hand-editable.
 

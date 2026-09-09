@@ -72,6 +72,12 @@ SECURITY_TOML = ROOT / "content" / "security.toml"
 
 HOME_POST_LIMIT = 3
 
+# With a single post, the home page shows it twice — once in the security
+# section and again under writing — so the writing block only earns its space
+# once there are a couple of posts. Below the threshold the nav link points
+# straight at /writing/ instead, keeping the index reachable.
+HOME_WRITING_MIN = 2
+
 
 # ---------------------------------------------------------------------------
 # Model
@@ -862,6 +868,7 @@ WRITING_SECTION = """  <!-- ================= WRITING ================= -->
   </section>"""
 
 WRITING_NAV = '<a class="nav__link" href="#writing">writing</a>'
+WRITING_NAV_PAGE = '<a class="nav__link" href="/writing/">writing</a>'
 
 
 def render_writing_section(posts: list[Post]) -> str:
@@ -1008,22 +1015,28 @@ def build(include_drafts: bool = False, quiet: bool = False) -> list[Post]:
         say("  updated  writing/index.html")
 
     home = ROOT / "index.html"
+    show_writing_block = len(posts) >= HOME_WRITING_MIN
+
     if splice(
         home,
-        render_writing_section(posts[:HOME_POST_LIMIT]),
+        render_writing_section(posts[:HOME_POST_LIMIT] if show_writing_block else []),
         WRITING_START,
         WRITING_END,
         indent="  ",
     ):
-        say(f"  updated  index.html (writing section: {'shown' if posts else 'hidden'})")
+        say(
+            "  updated  index.html (writing section: "
+            + ("shown" if show_writing_block else f"hidden, needs {HOME_WRITING_MIN} posts")
+            + ")"
+        )
 
-    if splice(
-        home,
-        WRITING_NAV if posts else "",
-        WRITING_NAV_START,
-        WRITING_NAV_END,
-    ):
-        say(f"  updated  index.html (nav link: {'shown' if posts else 'hidden'})")
+    if posts:
+        nav = WRITING_NAV if show_writing_block else WRITING_NAV_PAGE
+    else:
+        nav = ""
+    if splice(home, nav, WRITING_NAV_START, WRITING_NAV_END):
+        target = "#writing" if show_writing_block else "/writing/" if posts else "hidden"
+        say(f"  updated  index.html (writing nav: {target})")
 
     has_security = bool(disclosures or profiles)
     if splice(
