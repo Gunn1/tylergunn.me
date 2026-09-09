@@ -1,7 +1,7 @@
 # tylergunn.me
 
-Personal site. Hand-written HTML, CSS and JavaScript with a **Python build
-script for the writeups**. No framework, no npm, no third-party requests — the
+Personal site. Static HTML, CSS and JavaScript with **Python build scripts**.
+Written with [Claude Code](https://claude.com/claude-code). No framework, no npm, no third-party requests — the
 only tooling is `build.py`, which uses nothing outside the standard library.
 
 ## Layout
@@ -41,21 +41,22 @@ Projects live in `content/projects.toml`. Edit that file, then run
 
 ```toml
 [[project]]
-name = "sentinel"
+name = "Google2Snipe-IT"
 kind = "tool"          # tool (green) | research (amber) | anything else (grey)
 featured = true        # at most one — gets the wide card with the code pane
 description = """
 Prose. Wraps however you like; whitespace is collapsed.
 """
-tags = ["Python", "asyncio", "recon"]
-source = "https://github.com/tylergunn/sentinel"   # optional
-writeup = "/writing/asyncio-recon/"                # optional
-demo = "https://example.com"                       # optional
+tags = ["Python", "Google Admin SDK", "Snipe-IT"]
+source = "https://github.com/Gunn1/Google2Snipe-IT"          # optional
+writeup = "/writing/isp-monitoring-disclosure/"              # optional
+demo = "https://example.com"                                 # optional
 
-code_filename = "sentinel — scanner.py"            # featured card only
+code_filename = "Google2Snipe-IT — sync.py"                  # featured card only
 code = '''
 # keep lines to ~44 chars or the pane scrolls
-sem = asyncio.Semaphore(cfg.workers)
+for device in paginate(admin.chromeosdevices()):
+    upsert(snipe, device)
 '''
 ```
 

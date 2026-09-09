@@ -40,9 +40,9 @@
     },
     'README.md': {
       desc:
-        'This site is hand-written HTML, CSS and JavaScript. No framework, no ' +
-        'build step, no third-party requests. This shell reads its filesystem ' +
-        'directly out of the page you are looking at.'
+        'Static HTML, CSS and JavaScript with Python build scripts. No framework, ' +
+        'no dependencies, no third-party requests. Written with Claude Code; ' +
+        'this shell reads its filesystem directly out of the page you are looking at.'
     }
   };
 
@@ -476,6 +476,7 @@
       var rows = [
         ['email', 'tylerjgunn@gmail.com', 'mailto:tylerjgunn@gmail.com'],
         ['github', 'github.com/Gunn1', 'https://github.com/Gunn1'],
+        ['linkedin', 'in/tyler-gunn', 'https://www.linkedin.com/in/tyler-gunn-5ab508242/'],
         ['site', 'tylergunn.me', 'https://tylergunn.me']
       ];
       var html = rows

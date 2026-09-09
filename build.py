@@ -391,7 +391,7 @@ TERMINAL = """<div class="term" id="term" data-open="false" role="dialog" aria-m
 
 FOOTER = """<footer class="site-footer">
   <div class="wrap site-footer__inner">
-    <p>&copy; <span id="year">{year}</span> Tyler Gunn &mdash; built by hand, no frameworks.</p>
+    <p>&copy; <span id="year">{year}</span> Tyler Gunn &mdash; no frameworks, no dependencies.</p>
     <p>Press <kbd>`</kbd> for a terminal &middot; <a href="/feed.xml">RSS</a></p>
   </div>
 </footer>"""
