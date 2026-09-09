@@ -529,17 +529,25 @@ ICON_DOC = (
     '<polyline points="14 2 14 8 20 8"/></svg>'
 )
 
-PY_KEYWORDS = {
+# One merged set rather than per-language tables. The pane is decorative, a
+# false positive just colours a word, and this keeps the highlighter tiny.
+KEYWORDS = {
+    # Python
     "and", "as", "assert", "async", "await", "break", "class", "continue", "def",
     "del", "elif", "else", "except", "finally", "for", "from", "global", "if",
     "import", "in", "is", "lambda", "None", "nonlocal", "not", "or", "pass",
     "raise", "return", "True", "False", "try", "while", "with", "yield",
+    # JavaScript / TypeScript
+    "const", "let", "var", "function", "interface", "type", "export", "default",
+    "new", "extends", "implements", "public", "private", "readonly", "static",
+    "number", "string", "boolean", "null", "undefined", "void", "enum", "of",
+    "this", "typeof", "instanceof", "throw", "switch", "case", "do",
 }
 
-# comment | triple-quoted string | quoted string | bare word
+# comment (# or // or /* */) | triple-quoted string | quoted string | bare word
 _TOKENS = re.compile(
-    r"""(?P<comment>\#[^\n]*)
-      | (?P<string>\"\"\"(?:.|\n)*?\"\"\"|'''(?:.|\n)*?'''|"(?:\\.|[^"\\\n])*"|'(?:\\.|[^'\\\n])*')
+    r"""(?P<comment>\#[^\n]*|//[^\n]*|/\*(?:.|\n)*?\*/)
+      | (?P<string>\"\"\"(?:.|\n)*?\"\"\"|'''(?:.|\n)*?'''|"(?:\\.|[^"\\\n])*"|'(?:\\.|[^'\\\n])*'|`(?:\\.|[^`\\])*`)
       | (?P<word>[A-Za-z_]\w*)""",
     re.VERBOSE,
 )
@@ -563,7 +571,7 @@ def highlight(code: str) -> str:
             out.append(f'<span class="c-com">{text}</span>')
         elif m.lastgroup == "string":
             out.append(f'<span class="c-str">{text}</span>')
-        elif m.group(0) in PY_KEYWORDS:
+        elif m.group(0) in KEYWORDS:
             out.append(f'<span class="c-key">{text}</span>')
         else:
             out.append(text)

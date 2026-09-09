@@ -474,7 +474,7 @@
       blank();
       var rows = [
         ['email', 'tylerjgunn@gmail.com', 'mailto:tylerjgunn@gmail.com'],
-        ['github', 'github.com/tylergunn', 'https://github.com/tylergunn'],
+        ['github', 'github.com/Gunn1', 'https://github.com/Gunn1'],
         ['linkedin', 'in/tylergunn', 'https://www.linkedin.com/in/tylergunn'],
         ['site', 'tylergunn.me', 'https://tylergunn.me']
       ];

@@ -10,71 +10,95 @@
 # optional.
 
 [[project]]
-name = "sentinel"
-kind = "tool"
+name = "ReqFlow"
+kind = "app"
 featured = true
 description = """
-A fast, concurrent network reconnaissance scanner built on asyncio. Fingerprints
-services, diffs results between runs, and screams when something on your
-perimeter changes that shouldn't have. Built because commercial ASM tooling is
-priced for enterprises and I wanted the same signal for a homelab.
+Self-hosted purchase requisition and approval workflow for K-12 districts too
+small for Skyward or Tyler ERP but tired of paper forms and email chains.
+Multi-stage site/district/board approvals with ESIGN-compliant signatures, a
+canonical budget encumbrance ledger, Amazon Business cXML PunchOut, and
+per-line receiving with carrier tracking.
 """
-tags = ["Python", "asyncio", "recon", "netsec"]
-source = "https://github.com/tylergunn/sentinel"
-writeup = "/writing/asyncio-recon/"
+tags = ["Next.js", "TypeScript", "PostgreSQL", "Docker"]
+source = "https://github.com/tgunn-dev/ReqFlow"
 
-# Shown in the featured card. Highlighting is applied automatically.
-code_filename = "sentinel — scanner.py"
-# Keep lines to ~44 chars. The pane is narrow, and anything longer makes it
-# scroll horizontally.
+code_filename = "ReqFlow — get-budget-for-approval.ts"
 code = '''
-# bounded fan-out across the target set
-sem = asyncio.Semaphore(cfg.workers)
-
-async def probe(t: Target) -> Result | None:
-    async with sem:
-        try:
-            return await fingerprint(t)
-        except (OSError, TimeoutError):
-            log.warning("probe failed", t=t)
-            return None
-
-done = await gather(*map(probe, targets))
-results = [r for r in done if r]
+// what an approver sees before signing
+interface LineItemBudgetInfo {
+  budgetCode: BudgetCode | null;
+  budgetInfo: {
+    allocation: number;
+    encumbered: number;
+    availableBefore: number;
+    amountToEncumber: number;
+    availableAfter: number;
+    isOverBudget: boolean;
+  } | null;
+}
 '''
 
 
 [[project]]
-name = "glasshouse"
-kind = "research"
-description = """
-A deliberately vulnerable microservice stack for practising container escape and
-lateral movement. Ships with a scoring harness so you know when you've actually
-rooted it.
-"""
-tags = ["Docker", "Python", "training"]
-source = "https://github.com/tylergunn/glasshouse"
-
-
-[[project]]
-name = "cutline"
+name = "Google2Snipe-IT"
 kind = "tool"
 description = """
-A Python CLI that turns messy packet captures into readable session transcripts.
-Streams straight off the wire, reassembles TCP flows lazily, and stays flat in
-memory on captures far bigger than RAM.
+Syncs ChromeOS device data from the Google Admin SDK into Snipe-IT asset
+inventory. Authenticates with a service account using domain-wide delegation,
+paginates the full device list, creates models and categories automatically,
+and handles API rate limiting with exponential backoff. Runs on a systemd timer.
 """
-tags = ["Python", "pcap", "generators"]
-source = "https://github.com/tylergunn/cutline"
+tags = ["Python", "Google Admin SDK", "Snipe-IT"]
+source = "https://github.com/Gunn1/Google2Snipe-IT"
 
 
 [[project]]
-name = "tylergunn.me"
-kind = "web"
+name = "Merakitosnipeit"
+kind = "tool"
 description = """
-This site. Hand-written HTML and CSS with Python build scripts — no framework,
-no npm, no third-party requests. The terminal you can summon with ` reads the
-real page, so it can never drift out of sync with the content.
+Pulls the device inventory from a Cisco Meraki organisation into Snipe-IT.
+Caches categories and models at startup to keep API calls down, deduplicates by
+serial or asset tag so runs are idempotent, and ships with APScheduler, systemd
+timer, and Docker deployment paths.
 """
-tags = ["vanilla JS", "Python", "0 deps", "Cloudflare"]
-source = "https://github.com/tylergunn/tylergunn.me"
+tags = ["Python", "Meraki API", "Docker"]
+source = "https://github.com/Gunn1/Merakitosnipeit"
+
+
+[[project]]
+name = "toner-tracker-snipeit"
+kind = "app"
+description = """
+A small toner stock and replacement tracker for schools, built on FastAPI and
+SQLite. Pulls printer and asset data from Snipe-IT, raises low-stock alerts, and
+puts the whole thing behind a simple web dashboard.
+"""
+tags = ["Python", "FastAPI", "SQLite"]
+source = "https://github.com/Gunn1/toner-tracker-snipeit"
+
+
+[[project]]
+name = "SnipeITAgent"
+kind = "agent"
+description = """
+A lightweight cross-platform agent that collects hostname, serial, model and
+assigned user from a device and pushes it to Snipe-IT over the API. Runs
+silently in the background and compiles to a standalone executable for macOS,
+Windows and Linux.
+"""
+tags = ["Python", "cross-platform", "Snipe-IT"]
+source = "https://github.com/Gunn1/SnipeITAgent"
+
+
+[[project]]
+name = "chronicle-engine"
+kind = "plugin"
+description = """
+An AI-driven story and bounty engine for Minecraft servers. Generates evolving
+narrative chapters, contracts, world events and peace/war cycles using Claude,
+with a deterministic fallback mode when no API key is configured. Paper 1.21,
+Java 21, Vault and GriefPrevention aware.
+"""
+tags = ["Java", "Paper API", "Claude API"]
+source = "https://github.com/Gunn1/chronicle-engine"

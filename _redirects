@@ -7,5 +7,5 @@ https://www.tylergunn.me/*  https://tylergunn.me/:splat  301!
 /posts/*     /writing/:splat   301
 /resume      /cv.pdf           302
 /rss         /feed.xml         301
-/gh          https://github.com/tylergunn        302
+/gh          https://github.com/Gunn1        302
 /li          https://www.linkedin.com/in/tylergunn  302
