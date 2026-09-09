@@ -149,8 +149,8 @@
         <dd class="stat__value" data-count="40" data-suffix="+">40+</dd>
       </div>
       <div class="stat">
-        <dt class="stat__label">Daily drivers</dt>
-        <dd class="stat__value">Go · Rust</dd>
+        <dt class="stat__label">Daily driver</dt>
+        <dd class="stat__value">Python</dd>
       </div>
     </dl>
   </section>
@@ -179,14 +179,14 @@
             <span class="card__kind" data-kind="tool">tool</span>
           </div>
           <p class="card__desc">
-            A fast, concurrent network reconnaissance scanner written in Go. Fingerprints
-            services, diffs results between runs, and screams when something on your
-            perimeter changes that shouldn't have. Built because commercial ASM tooling
-            is priced for enterprises and I wanted the same signal for a homelab.
+            A fast, concurrent network reconnaissance scanner built on asyncio.
+            Fingerprints services, diffs results between runs, and screams when something
+            on your perimeter changes that shouldn't have. Built because commercial ASM
+            tooling is priced for enterprises and I wanted the same signal for a homelab.
           </p>
           <div class="card__meta">
-            <span class="tag">Go</span>
-            <span class="tag">concurrency</span>
+            <span class="tag">Python</span>
+            <span class="tag">asyncio</span>
             <span class="tag">recon</span>
             <span class="tag">netsec</span>
           </div>
@@ -208,22 +208,21 @@
               <span class="code-pane__dot"></span>
               <span class="code-pane__dot"></span>
               <span class="code-pane__dot"></span>
-              <span style="margin-left:.4rem">sentinel — scan.go</span>
+              <span style="margin-left:.4rem">sentinel — scanner.py</span>
             </div>
-            <div class="code-pane__body"><span class="c-com">// fan out across the target set, bounded</span>
-sem := make(<span class="c-key">chan</span> struct{}, cfg.Workers)
-<span class="c-key">for</span> _, t := <span class="c-key">range</span> targets {
-    sem &lt;- struct{}{}
-    <span class="c-key">go func</span>(t Target) {
-        <span class="c-key">defer func</span>() { &lt;-sem }()
-        r, err := probe(ctx, t)
-        <span class="c-key">if</span> err != <span class="c-key">nil</span> {
-            log.Warn(<span class="c-str">"probe failed"</span>, <span class="c-str">"t"</span>, t)
-            <span class="c-key">return</span>
-        }
-        results &lt;- r
-    }(t)
-}</div>
+            <div class="code-pane__body"><span class="c-com"># fan out across the target set, bounded</span>
+sem = asyncio.Semaphore(cfg.workers)
+
+<span class="c-key">async def</span> probe(t: Target) -&gt; Result | <span class="c-key">None</span>:
+    <span class="c-key">async with</span> sem:
+        <span class="c-key">try</span>:
+            <span class="c-key">return await</span> fingerprint(t, timeout=cfg.timeout)
+        <span class="c-key">except</span> (OSError, asyncio.TimeoutError):
+            log.warning(<span class="c-str">"probe failed"</span>, extra={<span class="c-str">"target"</span>: t})
+            <span class="c-key">return None</span>
+
+results = [r <span class="c-key">for</span> r <span class="c-key">in await</span> asyncio.gather(*map(probe, targets))
+           <span class="c-key">if</span> r <span class="c-key">is not None</span>]</div>
           </div>
         </div>
       </article>
@@ -259,14 +258,14 @@ sem := make(<span class="c-key">chan</span> struct{}, cfg.Workers)
           <span class="card__kind" data-kind="tool">tool</span>
         </div>
         <p class="card__desc">
-          A Rust CLI that turns messy packet captures into readable session transcripts.
-          Zero-copy parsing, streams straight off the wire, and never allocates on the
-          hot path.
+          A Python CLI that turns messy packet captures into readable session
+          transcripts. Streams straight off the wire, reassembles TCP flows lazily, and
+          stays flat in memory on captures far bigger than RAM.
         </p>
         <div class="card__meta">
-          <span class="tag">Rust</span>
+          <span class="tag">Python</span>
           <span class="tag">pcap</span>
-          <span class="tag">zero-copy</span>
+          <span class="tag">generators</span>
         </div>
         <div class="card__links">
           <a href="https://github.com/tylergunn/cutline">
@@ -317,46 +316,32 @@ sem := make(<span class="c-key">chan</span> struct{}, cfg.Workers)
     </div>
 
     <ul class="post-list" data-reveal>
+      <!-- posts:start -->
       <li class="post" data-node="heap-overflow-ctf" data-node-href="/writing/heap-overflow-ctf/">
         <a class="post__link" href="/writing/heap-overflow-ctf/">
           <h3 class="post__title">Walking a heap overflow to RCE, slowly</h3>
           <span class="post__date">2026-07-14</span>
-          <p class="post__desc">
-            A full writeup of a glibc tcache poisoning chain, including every dead end I
-            hit before the exploit landed.
-          </p>
-          <span class="post__tags">
-            <span class="tag">pwn</span><span class="tag">glibc</span><span class="tag">ctf</span>
-          </span>
+          <p class="post__desc">A full writeup of a glibc tcache poisoning chain, including every dead end I hit before the exploit landed.</p>
+          <span class="post__tags"><span class="tag">pwn</span><span class="tag">glibc</span><span class="tag">ctf</span></span>
         </a>
       </li>
-
-      <li class="post" data-node="go-concurrency-recon" data-node-href="/writing/go-concurrency-recon/">
-        <a class="post__link" href="/writing/go-concurrency-recon/">
+      <li class="post" data-node="asyncio-recon" data-node-href="/writing/asyncio-recon/">
+        <a class="post__link" href="/writing/asyncio-recon/">
           <h3 class="post__title">Scanning 65k ports without melting your NIC</h3>
           <span class="post__date">2026-05-02</span>
-          <p class="post__desc">
-            Bounded concurrency, backpressure, and why a naïve goroutine-per-target scanner
-            gets you rate-limited into oblivion.
-          </p>
-          <span class="post__tags">
-            <span class="tag">Go</span><span class="tag">networking</span><span class="tag">performance</span>
-          </span>
+          <p class="post__desc">Semaphores, backpressure, and why a naïve task-per-target asyncio scanner gets you rate-limited into oblivion.</p>
+          <span class="post__tags"><span class="tag">python</span><span class="tag">asyncio</span><span class="tag">networking</span></span>
         </a>
       </li>
-
       <li class="post" data-node="hardening-homelab" data-node-href="/writing/hardening-homelab/">
         <a class="post__link" href="/writing/hardening-homelab/">
-          <h3 class="post__title">Threat modelling a homelab like it's production</h3>
+          <h3 class="post__title">Threat modelling a homelab like it&#x27;s production</h3>
           <span class="post__date">2026-02-19</span>
-          <p class="post__desc">
-            What actually moved the needle when I stopped treating my home network as a toy.
-          </p>
-          <span class="post__tags">
-            <span class="tag">blue team</span><span class="tag">homelab</span><span class="tag">netsec</span>
-          </span>
+          <p class="post__desc">What actually moved the needle when I stopped treating my home network as a toy.</p>
+          <span class="post__tags"><span class="tag">blue team</span><span class="tag">homelab</span><span class="tag">netsec</span></span>
         </a>
       </li>
+      <!-- posts:end -->
     </ul>
   </section>
 
@@ -377,8 +362,8 @@ sem := make(<span class="c-key">chan</span> struct{}, cfg.Workers)
           more interesting.
         </p>
         <p>
-          Most of my time goes to <strong>systems and network programming</strong>, usually
-          in Go or Rust, and to <strong>security work</strong>: reverse engineering, exploit
+          Most of my time goes to <strong>Python</strong> — tooling, automation and network
+          programming — and to <strong>security work</strong>: reverse engineering, exploit
           development, and the unglamorous business of making infrastructure harder to walk
           into. I like the overlap. Understanding how something is built is the fastest route
           to understanding how it breaks, and vice versa.
@@ -395,14 +380,14 @@ sem := make(<span class="c-key">chan</span> struct{}, cfg.Workers)
         <div class="skills__group">
           <p class="skills__label">languages</p>
           <ul class="skills__items">
-            <li>Go</li><li>Rust</li><li>Python</li><li>C</li><li>TypeScript</li><li>Bash</li>
+            <li>Python</li><li>Bash</li><li>SQL</li><li>C</li><li>JavaScript</li>
           </ul>
         </div>
         <div class="skills__group">
           <p class="skills__label">security</p>
           <ul class="skills__items">
             <li>Reverse engineering</li><li>Exploit dev</li><li>Network recon</li>
-            <li>Threat modelling</li><li>Burp Suite</li><li>Ghidra</li>
+            <li>Threat modelling</li><li>Burp Suite</li><li>Ghidra</li><li>Scapy</li>
           </ul>
         </div>
         <div class="skills__group">

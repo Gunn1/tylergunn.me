@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Threat modelling a homelab like it&#x27;s production &mdash; Tyler Gunn</title>
+<meta name="description" content="What actually moved the needle when I stopped treating my home network as a toy.">
+<link rel="canonical" href="https://tylergunn.me/writing/hardening-homelab/">
+
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://tylergunn.me/writing/hardening-homelab/">
+<meta property="og:title" content="Threat modelling a homelab like it&#x27;s production">
+<meta property="og:description" content="What actually moved the needle when I stopped treating my home network as a toy.">
+<meta property="article:published_time" content="2026-02-19">
+<meta name="twitter:card" content="summary_large_image">
+
+<link rel="icon" href="/assets/img/favicon.svg" type="image/svg+xml">
+<link rel="alternate" type="application/atom+xml" title="Tyler Gunn &mdash; Writing" href="/feed.xml">
+<meta name="theme-color" content="#08090b" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#fcfcfb" media="(prefers-color-scheme: light)">
+
+<link rel="stylesheet" href="/assets/css/style.css">
+<link rel="stylesheet" href="/assets/css/terminal.css">
+<script src="/assets/js/theme-init.js"></script>
+
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"BlogPosting","headline":"Threat modelling a homelab like it&#x27;s production",
+"datePublished":"2026-02-19","author":{"@type":"Person","name":"Tyler Gunn",
+"url":"https://tylergunn.me"},"mainEntityOfPage":"https://tylergunn.me/writing/hardening-homelab/"}
+</script>
+</head>
+
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+
+<header class="site-header" id="site-header">
+  <div class="wrap site-header__inner">
+    <a class="brand" href="/">
+      <span class="brand__mark" aria-hidden="true">tg</span>
+      <span>tylergunn.me</span>
+      <span class="brand__caret" aria-hidden="true">_</span>
+    </a>
+    <nav class="nav" aria-label="Primary">
+      <a class="nav__link" href="/#work">work</a>
+      <a class="nav__link" href="/writing/" aria-current="true">writing</a>
+      <a class="nav__link" href="/#about">about</a>
+      <a class="nav__link" href="/#contact">contact</a>
+    </nav>
+    <div class="header-actions">
+      <button class="term-trigger" id="term-open" type="button" aria-haspopup="dialog">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+             stroke-linecap="round" stroke-linejoin="round" width="15" height="15" aria-hidden="true">
+          <polyline points="4 17 10 11 4 5"></polyline>
+          <line x1="12" y1="19" x2="20" y2="19"></line>
+        </svg>
+        <span class="term-trigger__label">terminal</span>
+        <span class="term-trigger__key" aria-hidden="true">`</span>
+      </button>
+      <button class="icon-btn theme-toggle" id="theme-toggle" type="button" aria-label="Toggle colour theme">
+        <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+             stroke-linecap="round" aria-hidden="true">
+          <circle cx="12" cy="12" r="4"></circle>
+          <path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"></path>
+        </svg>
+        <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"></path>
+        </svg>
+      </button>
+    </div>
+  </div>
+</header>
+
+<main id="main" class="section wrap" data-dir="writing">
+  <article class="article" data-node="hardening-homelab" data-node-href="/writing/hardening-homelab/">
+    <div class="article__head">
+      <p class="eyebrow"><span class="sigil">~/</span>writing</p>
+      <h1 class="article__title">Threat modelling a homelab like it&#x27;s production</h1>
+      <div class="article__meta">
+        <time datetime="2026-02-19">2026-02-19</time>
+        <span>&middot;</span>
+        <span>3 min read</span>
+        <span class="post__tags" style="margin:0"><span class="tag">blue team</span><span class="tag">homelab</span><span class="tag">netsec</span></span>
+      </div>
+    </div>
+
+    <div class="article__body">
+<p>For years my homelab security was a firewall rule and optimism. Then I actually wrote down what I was defending against, and most of what I had been doing turned out to be irrelevant.</p>
+<h2 id="write-the-model-down-first">Write the model down first</h2>
+<p>The exercise that changed things was boring: a table of what I have, who might want it, and what they would have to do.</p>
+<div class="table-wrap"><table><thead><tr><th>Asset</th><th>Adversary</th><th>Realistic path in</th></tr></thead><tbody><tr><td>Backups, documents</td><td>Opportunistic scanner</td><td>Exposed service with a known CVE</td></tr><tr><td>Home automation</td><td>Same</td><td>Default credentials on an IoT device</td></tr><tr><td>Source code, keys</td><td>Targeted</td><td>Phished credential, then lateral movement</td></tr><tr><td>Bandwidth</td><td>Botnet</td><td>Anything with a shell and a public port</td></tr></tbody></table></div>
+<p>Two things fell out of this immediately. Almost every realistic path started with <strong>something I had exposed on purpose and then forgotten about</strong>, and the IoT devices were the weakest link by a wide margin while holding nothing I cared about.</p>
+<h2 id="what-actually-helped">What actually helped</h2>
+<h3 id="stop-exposing-things">Stop exposing things</h3>
+<p>I had eleven ports forwarded. I could justify three. The rest were experiments from years earlier that I had never turned off, including a Jellyfin instance two major versions behind.</p>
+<p>Everything that did not need to be public went behind Wireguard. This single change removed more attack surface than everything else combined, and it cost me nothing in convenience once the phone had a persistent tunnel.</p>
+<blockquote>If you can only do one thing: enumerate what you have exposed, from the outside, and turn off everything you cannot justify out loud.</blockquote>
+<h3 id="segment-the-untrusted-devices">Segment the untrusted devices</h3>
+<p>The IoT VLAN was the second-biggest win. Smart plugs, TVs and cameras go on a network that can reach the internet and nothing else. No amount of vendor firmware negligence turns into a foothold on the network holding my backups.</p>
+<p>The rule that matters is the one denying inter-VLAN traffic by default. It is easy to create the VLAN, feel productive, and never actually write the deny rule.</p>
+<h3 id="watch-for-changes-not-for-attacks">Watch for changes, not for attacks</h3>
+<p>I do not have the time or the volume to run a real detection stack, and pretending otherwise produces alerts nobody reads. What I run instead is a nightly diff:</p>
+<pre><code class="language-python">def diff_scan(previous: dict, current: dict) -&gt; list[str]:
+    """Report services that appeared, vanished, or changed banner."""
+    changes = []
+    for key in previous.keys() | current.keys():
+        before, after = previous.get(key), current.get(key)
+        if before == after:
+            continue
+        if before is None:
+            changes.append(f"NEW      {key}: {after}")
+        elif after is None:
+            changes.append(f"GONE     {key}: {before}")
+        else:
+            changes.append(f"CHANGED  {key}: {before} -&gt; {after}")
+    return changes</code></pre>
+<p>Scan the perimeter, compare to yesterday, mail me only if something moved. Most days it sends nothing. When it does send something, it is always worth reading — which is the property that makes people actually read it.</p>
+<h3 id="patch-the-things-that-face-outward">Patch the things that face outward</h3>
+<p>Unattended upgrades on everything public. For containers, a weekly pull and restart. This is unglamorous and it addresses the single most common path in the table above.</p>
+<h2 id="what-did-not-help">What did not help</h2>
+<ul><li><strong>Fail2ban on SSH.</strong> Once SSH was key-only and behind the tunnel, the log noise it was suppressing did not matter.</li><li><strong>An IDS on the home network.</strong> I ran Suricata for two months. It produced thousands of alerts about my own devices and I found nothing. The signal-to-noise ratio at this scale does not justify it.</li><li><strong>Rotating passwords on a schedule.</strong> A password manager with unique credentials everywhere made this pointless.</li><li><strong>Obsessing over the router firmware.</strong> Real, but far less likely than the forgotten Jellyfin port.</li></ul>
+<h2 id="the-pattern">The pattern</h2>
+<p>Every improvement that mattered was about <strong>reducing what exists</strong>, not adding a defensive layer. Fewer exposed ports, fewer devices that can talk to each other, fewer services running that nobody uses.</p>
+<p>The stuff that did not help was almost all additive — another tool, another log source, another dashboard. It felt productive and it defended against nothing that was going to happen to me.</p>
+<p>Write the table. It takes an hour and it tells you which half of your effort is wasted.</p>
+    </div>
+
+    <div class="article__foot">
+      <a class="btn btn--ghost" href="/writing/">&larr; All posts</a>
+      <a class="btn btn--ghost" href="/#contact">Get in touch</a>
+    </div>
+  </article>
+</main>
+
+<footer class="site-footer">
+  <div class="wrap site-footer__inner">
+    <p>&copy; <span id="year">2026</span> Tyler Gunn &mdash; built by hand, no frameworks.</p>
+    <p>Press <kbd>`</kbd> for a terminal &middot; <a href="/feed.xml">RSS</a></p>
+  </div>
+</footer>
+
+<div class="term" id="term" data-open="false" role="dialog" aria-modal="true"
+     aria-label="Site terminal" aria-hidden="true">
+  <div class="term__window">
+    <div class="term__bar">
+      <div class="term__dots" aria-hidden="true">
+        <span class="term__dot term__dot--close"></span>
+        <span class="term__dot term__dot--min"></span>
+        <span class="term__dot term__dot--max"></span>
+      </div>
+      <span class="term__title">tyler@gunn &mdash; bash &mdash; 80&times;24</span>
+      <button class="term__close" id="term-close" type="button" aria-label="Close terminal">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+             stroke-linecap="round" aria-hidden="true">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+    </div>
+    <div class="term__body" id="term-body" tabindex="0" role="log" aria-live="polite"></div>
+    <form class="term__prompt-row" id="term-form" autocomplete="off">
+      <label class="term__ps1" for="term-input">
+        tyler@gunn<span class="d">:</span><span class="path" id="term-path">~</span><span class="d">$</span>
+      </label>
+      <input class="term__input" id="term-input" name="cmd" type="text"
+             placeholder="type 'help' to get started"
+             autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
+             aria-label="Terminal input">
+    </form>
+    <div class="term__hint">
+      <span><kbd>Tab</kbd> complete</span>
+      <span><kbd>&uarr;</kbd><kbd>&darr;</kbd> history</span>
+      <span><kbd>Ctrl</kbd>+<kbd>L</kbd> clear</span>
+      <span><kbd>Esc</kbd> close</span>
+    </div>
+  </div>
+</div>
+
+<script src="/assets/js/site.js" defer></script>
+<script src="/assets/js/terminal.js" defer></script>
+</body>
+</html>

@@ -1,18 +1,22 @@
 # tylergunn.me
 
-Personal site. Hand-written HTML, CSS and JavaScript — **no framework, no build
-step, no dependencies, no third-party requests**. Whatever is in this directory
-is exactly what gets served.
+Personal site. Hand-written HTML, CSS and JavaScript with a **Python build
+script for the writeups**. No framework, no npm, no third-party requests — the
+only tooling is `build.py`, which uses nothing outside the standard library.
 
 ## Layout
 
 ```
 .
+├── build.py                writeup builder (stdlib only)
+├── content/writeups/*.md   ← you edit these
 ├── index.html              home — hero, work, writing, about, contact
 ├── 404.html                terminal-flavoured not-found page
-├── writing/index.html      post index
+├── writing/
+│   ├── index.html          post index          (generated section)
+│   └── <slug>/index.html   one page per post   (generated)
 ├── assets/
-│   ├── css/style.css       design tokens, layout, components
+│   ├── css/style.css       design tokens, layout, components, article prose
 │   ├── css/terminal.css    the terminal overlay
 │   ├── js/theme-init.js    applies saved theme before first paint
 │   ├── js/site.js          theme toggle, scrollspy, reveals, typed roles
@@ -21,20 +25,54 @@ is exactly what gets served.
 ├── _headers                Cloudflare: CSP + security + cache headers
 ├── _redirects              Cloudflare: www→apex, /blog→/writing, short links
 ├── robots.txt
-├── sitemap.xml
-└── feed.xml
+├── sitemap.xml             (generated)
+└── feed.xml                (generated)
 ```
+
+## Writing a post
+
+```sh
+python3 build.py --new "Title of the post"   # scaffolds content/writeups/<date>-<slug>.md
+python3 build.py --watch                     # rebuild on save, drafts included
+python3 build.py --serve                     # build once, then serve on :8000
+python3 build.py                             # build once, skipping drafts
+```
+
+Each Markdown file starts with a front matter block:
+
+```
+---
+title: Scanning 65k ports without melting your NIC
+slug: asyncio-recon          # optional, defaults to a slug of the title
+date: 2026-05-02
+description: One sentence for the index and the feed.
+tags: python, asyncio, networking
+draft: true                  # omit or set false to publish
+---
+```
+
+`build.py` writes `writing/<slug>/index.html`, refreshes the post lists on the
+home page and `/writing/`, and regenerates `feed.xml` and `sitemap.xml`. Deleting
+a Markdown file removes its generated page on the next build.
+
+It rewrites **only** what sits between the `<!-- posts:start -->` and
+`<!-- posts:end -->` markers, so the rest of those two pages stays hand-editable.
+
+The Markdown support is a deliberate subset: headings, paragraphs, fenced code,
+lists, tables, blockquotes, rules, images, links, `inline code`, bold, italic and
+strikethrough. It errors loudly with a file and line number rather than guessing,
+and exits non-zero so a failed build is never published.
 
 ## Running it locally
 
-Any static file server works. With Python:
+`python3 build.py --serve`, or any static file server:
 
 ```sh
 python3 -m http.server 8000
 ```
 
-Then open <http://localhost:8000>. Note that `_headers` and `_redirects` are
-Cloudflare-specific and are ignored locally.
+Note that `_headers` and `_redirects` are Cloudflare-specific and are ignored
+locally.
 
 ## The terminal
 
@@ -63,8 +101,13 @@ Commands: `help` `ls` `cd` `pwd` `cat` `open` `whoami` `contact` `theme`
    **Connect to Git**, and pick the repo.
 3. Build settings:
    - **Framework preset:** `None`
-   - **Build command:** *(leave empty)*
+   - **Build command:** `python3 build.py`
    - **Build output directory:** `/`
+
+   Cloudflare Pages has Python available, so it can run the build itself. If you
+   would rather not depend on that, run `python3 build.py` locally, commit the
+   generated HTML, and leave the build command empty — the output is committed
+   either way.
 4. Deploy. You'll get a `*.pages.dev` URL immediately.
 5. **Custom domains** → add `tylergunn.me` and `www.tylergunn.me`. If the domain
    is already on Cloudflare DNS the records are created for you.
@@ -87,8 +130,8 @@ for these and swap in your own:
 
 - [ ] **Projects** — the four cards in `index.html` (`sentinel`, `glasshouse`,
       `cutline`, `this-site`) and their GitHub URLs
-- [ ] **Posts** — three entries duplicated in `index.html`, `writing/index.html`
-      and `feed.xml`; the individual post pages don't exist yet
+- [ ] **Posts** — the three files in `content/writeups/`. These are invented;
+      replace or delete them and run `python3 build.py`
 - [ ] **Stats** — `data-count` values in the hero (years, projects, CTFs)
 - [ ] **Bio** — the three paragraphs in `#bio`
 - [ ] **Skills** — the three groups in `.skills`

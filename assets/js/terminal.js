@@ -457,8 +457,8 @@
       line('<b>Tyler Gunn</b> <span class="d">— software &amp; security engineer</span>');
       blank();
       paragraph(
-        'I build systems software and offensive tooling, mostly in Go and Rust, ' +
-          'and I spend a lot of time working out how things fail. Understanding how ' +
+        'I build tooling and offensive security software, mostly in Python, and I ' +
+          'spend a lot of time working out how things fail. Understanding how ' +
           'something is built is the fastest route to understanding how it breaks.'
       );
       blank();
@@ -526,7 +526,7 @@
         ['shell', 'tgsh 1.0'],
         ['host', 'tylergunn.me'],
         ['uptime', uptime()],
-        ['langs', 'Go, Rust, Python, C'],
+        ['langs', 'Python, Bash, C'],
         ['deps', '0'],
         ['theme', document.documentElement.dataset.theme]
       ];
