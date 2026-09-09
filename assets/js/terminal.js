@@ -34,10 +34,6 @@
 
   // Files that live at the root alongside the section directories.
   var ROOT_FILES = {
-    'cv.pdf': {
-      href: '/cv.pdf',
-      desc: 'Résumé — PDF. Run `open cv.pdf` to download it.'
-    },
     'README.md': {
       desc:
         'Static HTML, CSS and JavaScript with Python build scripts. No framework, ' +

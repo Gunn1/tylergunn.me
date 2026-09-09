@@ -4,4 +4,12 @@
     <loc>https://tylergunn.me/</loc>
     <priority>1.0</priority>
   </url>
+  <url>
+    <loc>https://tylergunn.me/writing/</loc>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://tylergunn.me/writing/isp-monitoring-disclosure/</loc>
+    <priority>0.7</priority>
+  </url>
 </urlset>
