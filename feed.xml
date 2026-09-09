@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <title>Tyler Gunn — Writing</title>
+  <subtitle>Notes on security research, systems programming and networking.</subtitle>
+  <link href="https://tylergunn.me/feed.xml" rel="self"/>
+  <link href="https://tylergunn.me/"/>
+  <id>https://tylergunn.me/</id>
+  <updated>2026-07-14T00:00:00Z</updated>
+  <author>
+    <name>Tyler Gunn</name>
+    <uri>https://tylergunn.me</uri>
+  </author>
+
+  <entry>
+    <title>Walking a heap overflow to RCE, slowly</title>
+    <link href="https://tylergunn.me/writing/heap-overflow-ctf/"/>
+    <id>https://tylergunn.me/writing/heap-overflow-ctf/</id>
+    <updated>2026-07-14T00:00:00Z</updated>
+    <summary>A full writeup of a glibc tcache poisoning chain, including every dead end hit before the exploit landed.</summary>
+  </entry>
+
+  <entry>
+    <title>Scanning 65k ports without melting your NIC</title>
+    <link href="https://tylergunn.me/writing/go-concurrency-recon/"/>
+    <id>https://tylergunn.me/writing/go-concurrency-recon/</id>
+    <updated>2026-05-02T00:00:00Z</updated>
+    <summary>Bounded concurrency, backpressure, and why a naive goroutine-per-target scanner gets you rate-limited into oblivion.</summary>
+  </entry>
+
+  <entry>
+    <title>Threat modelling a homelab like it's production</title>
+    <link href="https://tylergunn.me/writing/hardening-homelab/"/>
+    <id>https://tylergunn.me/writing/hardening-homelab/</id>
+    <updated>2026-02-19T00:00:00Z</updated>
+    <summary>What actually moved the needle when I stopped treating my home network as a toy.</summary>
+  </entry>
+</feed>

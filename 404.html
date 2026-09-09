@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>404 — Tyler Gunn</title>
+<meta name="robots" content="noindex">
+<link rel="icon" href="/assets/img/favicon.svg" type="image/svg+xml">
+<meta name="theme-color" content="#08090b" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#fcfcfb" media="(prefers-color-scheme: light)">
+<link rel="stylesheet" href="/assets/css/style.css">
+<script src="/assets/js/theme-init.js"></script>
+<style>
+  .notfound {
+    min-height: 78dvh;
+    display: grid;
+    align-content: center;
+    gap: 1.5rem;
+  }
+  .notfound__code {
+    font-family: var(--font-mono);
+    font-size: clamp(4rem, 3rem + 9vw, 8rem);
+    font-weight: 650;
+    line-height: 1;
+    letter-spacing: -0.05em;
+    color: var(--accent);
+  }
+  .notfound__shell {
+    max-width: 560px;
+    padding: 1.1rem 1.25rem;
+    font-family: var(--font-mono);
+    font-size: 0.87rem;
+    line-height: 1.75;
+    color: var(--text-dim);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    white-space: pre-wrap;
+  }
+  .notfound__shell .k { color: var(--accent); }
+  .notfound__shell .e { color: var(--danger); }
+</style>
+</head>
+
+<body>
+<header class="site-header" data-stuck="true">
+  <div class="wrap site-header__inner">
+    <a class="brand" href="/">
+      <span class="brand__mark" aria-hidden="true">tg</span>
+      <span>tylergunn.me</span>
+      <span class="brand__caret" aria-hidden="true">_</span>
+    </a>
+  </div>
+</header>
+
+<main class="wrap notfound">
+  <p class="eyebrow"><span class="sigil">~/</span>void</p>
+  <p class="notfound__code">404</p>
+  <h1 class="section__title" style="margin-top:0">This path doesn't resolve.</h1>
+
+  <div class="notfound__shell"><span class="k">tyler@gunn</span>:<span>~</span>$ stat <span id="badpath">the-page-you-wanted</span>
+<span class="e">stat: cannot stat: No such file or directory</span>
+
+<span class="k">tyler@gunn</span>:<span>~</span>$ ls
+<span class="k">about/  projects/  writing/  contact/</span>  cv.pdf  README.md</div>
+
+  <div class="hero__actions" style="margin-top:.5rem">
+    <a class="btn btn--primary" href="/">Back to ~</a>
+    <a class="btn btn--ghost" href="/writing/">Read something instead</a>
+  </div>
+</main>
+
+<footer class="site-footer">
+  <div class="wrap site-footer__inner">
+    <p>© <span id="year">2026</span> Tyler Gunn</p>
+  </div>
+</footer>
+
+<script src="/assets/js/notfound.js" defer></script>
+</body>
+</html>

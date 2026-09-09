@@ -1,0 +1,11 @@
+# Cloudflare Pages redirects. One rule per line: <from> <to> <status>
+# Canonical host — send the www subdomain to the apex.
+https://www.tylergunn.me/*  https://tylergunn.me/:splat  301!
+
+# Friendly short paths.
+/blog/*      /writing/:splat   301
+/posts/*     /writing/:splat   301
+/resume      /cv.pdf           302
+/rss         /feed.xml         301
+/gh          https://github.com/tylergunn        302
+/li          https://www.linkedin.com/in/tylergunn  302

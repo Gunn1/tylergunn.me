@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Writing — Tyler Gunn</title>
+<meta name="description" content="Writeups and notes on security research, systems programming and networking by Tyler Gunn.">
+<link rel="canonical" href="https://tylergunn.me/writing/">
+
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://tylergunn.me/writing/">
+<meta property="og:title" content="Writing — Tyler Gunn">
+<meta property="og:description" content="Writeups and notes on security research, systems programming and networking.">
+
+<link rel="icon" href="/assets/img/favicon.svg" type="image/svg+xml">
+<link rel="alternate" type="application/atom+xml" title="Tyler Gunn — Writing" href="/feed.xml">
+<meta name="theme-color" content="#08090b" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#fcfcfb" media="(prefers-color-scheme: light)">
+
+<link rel="stylesheet" href="/assets/css/style.css">
+<link rel="stylesheet" href="/assets/css/terminal.css">
+
+<script src="/assets/js/theme-init.js"></script>
+</head>
+
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+
+<header class="site-header" id="site-header">
+  <div class="wrap site-header__inner">
+    <a class="brand" href="/">
+      <span class="brand__mark" aria-hidden="true">tg</span>
+      <span>tylergunn.me</span>
+      <span class="brand__caret" aria-hidden="true">_</span>
+    </a>
+
+    <nav class="nav" aria-label="Primary">
+      <a class="nav__link" href="/#work">work</a>
+      <a class="nav__link" href="/writing/" aria-current="true">writing</a>
+      <a class="nav__link" href="/#about">about</a>
+      <a class="nav__link" href="/#contact">contact</a>
+    </nav>
+
+    <div class="header-actions">
+      <button class="term-trigger" id="term-open" type="button" aria-haspopup="dialog">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+             stroke-linecap="round" stroke-linejoin="round" width="15" height="15" aria-hidden="true">
+          <polyline points="4 17 10 11 4 5"></polyline>
+          <line x1="12" y1="19" x2="20" y2="19"></line>
+        </svg>
+        <span class="term-trigger__label">terminal</span>
+        <span class="term-trigger__key" aria-hidden="true">`</span>
+      </button>
+
+      <button class="icon-btn theme-toggle" id="theme-toggle" type="button" aria-label="Toggle colour theme">
+        <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+             stroke-linecap="round" aria-hidden="true">
+          <circle cx="12" cy="12" r="4"></circle>
+          <path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"></path>
+        </svg>
+        <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"></path>
+        </svg>
+      </button>
+    </div>
+  </div>
+</header>
+
+<main id="main">
+  <section class="section wrap" id="writing" data-dir="writing">
+    <div class="section__head">
+      <div>
+        <p class="eyebrow"><span class="sigil">~/</span>writing</p>
+        <h2 class="section__title">Notes &amp; writeups</h2>
+        <p class="section__lede">
+          Long-form notes on things I've broken, built, or had to learn the hard way.
+          Mostly security research, systems programming and networking.
+        </p>
+      </div>
+      <a class="btn btn--ghost" href="/feed.xml">RSS feed</a>
+    </div>
+
+    <ul class="post-list">
+      <li class="post" data-node="heap-overflow-ctf" data-node-href="/writing/heap-overflow-ctf/">
+        <a class="post__link" href="/writing/heap-overflow-ctf/">
+          <h3 class="post__title">Walking a heap overflow to RCE, slowly</h3>
+          <span class="post__date">2026-07-14</span>
+          <p class="post__desc">
+            A full writeup of a glibc tcache poisoning chain, including every dead end I
+            hit before the exploit landed.
+          </p>
+          <span class="post__tags">
+            <span class="tag">pwn</span><span class="tag">glibc</span><span class="tag">ctf</span>
+          </span>
+        </a>
+      </li>
+
+      <li class="post" data-node="go-concurrency-recon" data-node-href="/writing/go-concurrency-recon/">
+        <a class="post__link" href="/writing/go-concurrency-recon/">
+          <h3 class="post__title">Scanning 65k ports without melting your NIC</h3>
+          <span class="post__date">2026-05-02</span>
+          <p class="post__desc">
+            Bounded concurrency, backpressure, and why a naïve goroutine-per-target scanner
+            gets you rate-limited into oblivion.
+          </p>
+          <span class="post__tags">
+            <span class="tag">Go</span><span class="tag">networking</span><span class="tag">performance</span>
+          </span>
+        </a>
+      </li>
+
+      <li class="post" data-node="hardening-homelab" data-node-href="/writing/hardening-homelab/">
+        <a class="post__link" href="/writing/hardening-homelab/">
+          <h3 class="post__title">Threat modelling a homelab like it's production</h3>
+          <span class="post__date">2026-02-19</span>
+          <p class="post__desc">
+            What actually moved the needle when I stopped treating my home network as a toy.
+          </p>
+          <span class="post__tags">
+            <span class="tag">blue team</span><span class="tag">homelab</span><span class="tag">netsec</span>
+          </span>
+        </a>
+      </li>
+    </ul>
+  </section>
+</main>
+
+<footer class="site-footer">
+  <div class="wrap site-footer__inner">
+    <p>© <span id="year">2026</span> Tyler Gunn — built by hand, no frameworks.</p>
+    <p>
+      Press <kbd>`</kbd> for a terminal ·
+      <a href="/feed.xml">RSS</a>
+    </p>
+  </div>
+</footer>
+
+<div class="term" id="term" data-open="false" role="dialog" aria-modal="true"
+     aria-label="Site terminal" aria-hidden="true">
+  <div class="term__window">
+    <div class="term__bar">
+      <div class="term__dots" aria-hidden="true">
+        <span class="term__dot term__dot--close"></span>
+        <span class="term__dot term__dot--min"></span>
+        <span class="term__dot term__dot--max"></span>
+      </div>
+      <span class="term__title">tyler@gunn — bash — 80×24</span>
+      <button class="term__close" id="term-close" type="button" aria-label="Close terminal">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+             stroke-linecap="round" aria-hidden="true">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+    </div>
+
+    <div class="term__body" id="term-body" tabindex="0" role="log" aria-live="polite"></div>
+
+    <form class="term__prompt-row" id="term-form" autocomplete="off">
+      <label class="term__ps1" for="term-input">
+        tyler@gunn<span class="d">:</span><span class="path" id="term-path">~</span><span class="d">$</span>
+      </label>
+      <input class="term__input" id="term-input" name="cmd" type="text"
+             placeholder="type 'help' to get started"
+             autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
+             aria-label="Terminal input">
+    </form>
+
+    <div class="term__hint">
+      <span><kbd>Tab</kbd> complete</span>
+      <span><kbd>↑</kbd><kbd>↓</kbd> history</span>
+      <span><kbd>Ctrl</kbd>+<kbd>L</kbd> clear</span>
+      <span><kbd>Esc</kbd> close</span>
+    </div>
+  </div>
+</div>
+
+<script src="/assets/js/site.js" defer></script>
+<script src="/assets/js/terminal.js" defer></script>
+</body>
+</html>
