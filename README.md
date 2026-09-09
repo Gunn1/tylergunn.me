@@ -72,6 +72,33 @@ missing `name`/`description`, more than one `featured`, or no projects at all.
 Sources are parsed and validated before any file is written, so a typo can't
 leave the site half-rebuilt.
 
+## Security section
+
+`content/security.toml` drives the `#security` block: disclosures and platform
+profiles. Either list can be empty; if both are, the section and its nav link
+disappear the same way the writing section does.
+
+```toml
+[[disclosure]]
+title = "Multi-stage attack chain in an ISP's LibreNMS monitoring platform"
+target = "Regional ISP"
+date = "2026-03"
+severity = "critical"          # critical | high | medium | low
+status = "remediated in one week"
+summary = """Prose. Optional."""
+writeup = "/writing/isp-monitoring-disclosure/"   # optional, a post on this site
+ref = "https://..."                               # optional, CVE or advisory
+
+[[profile]]
+name = "TryHackMe"
+handle = "yourhandle"          # optional
+url = "https://tryhackme.com/p/yourhandle"
+note = "Top 5%"                # optional
+```
+
+Only critical and high get a coloured badge — if everything is highlighted,
+nothing is.
+
 ## Writing a post
 
 ```sh

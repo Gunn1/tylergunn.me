@@ -63,6 +63,13 @@ WRITING_END = "<!-- writing:end -->"
 WRITING_NAV_START = "<!-- writing-nav:start -->"
 WRITING_NAV_END = "<!-- writing-nav:end -->"
 
+# Same self-hiding treatment for the security section.
+SECURITY_START = "<!-- security:start -->"
+SECURITY_END = "<!-- security:end -->"
+SECURITY_NAV_START = "<!-- security-nav:start -->"
+SECURITY_NAV_END = "<!-- security-nav:end -->"
+SECURITY_TOML = ROOT / "content" / "security.toml"
+
 HOME_POST_LIMIT = 3
 
 
@@ -687,6 +694,155 @@ def render_projects(projects: list[dict]) -> str:
     return "\n\n".join(cards)
 
 
+# ---------------------------------------------------------------------------
+# Security
+# ---------------------------------------------------------------------------
+
+SEVERITIES = {"critical", "high", "medium", "low"}
+
+
+def load_security() -> tuple[list[dict], list[dict]]:
+    if not SECURITY_TOML.exists():
+        return [], []
+
+    rel = SECURITY_TOML.relative_to(ROOT)
+    try:
+        data = tomllib.loads(SECURITY_TOML.read_text(encoding="utf-8"))
+    except tomllib.TOMLDecodeError as exc:
+        raise BuildError(f"{rel}: {exc}") from exc
+
+    disclosures = data.get("disclosure", [])
+    profiles = data.get("profile", [])
+
+    for d in disclosures:
+        for key in ("title", "date", "severity"):
+            if not d.get(key):
+                raise BuildError(
+                    f"{rel}: disclosure {d.get('title', '<untitled>')!r} is missing '{key}'"
+                )
+        if d["severity"] not in SEVERITIES:
+            raise BuildError(
+                f"{rel}: severity {d['severity']!r} must be one of "
+                f"{', '.join(sorted(SEVERITIES))}"
+            )
+
+    for p in profiles:
+        for key in ("name", "url"):
+            if not p.get(key):
+                raise BuildError(
+                    f"{rel}: profile {p.get('name', '<unnamed>')!r} is missing '{key}'"
+                )
+
+    return disclosures, profiles
+
+
+SECURITY_SECTION = """  <!-- ================= SECURITY ================= -->
+  <section class="section wrap" id="security" data-dir="security">
+    <div class="section__head" data-reveal>
+      <div>
+        <p class="eyebrow"><span class="sigil">~/</span>security</p>
+        <h2 class="section__title">Security research</h2>
+        <p class="section__lede">
+          Things I found, reported, and where they ended up.
+        </p>
+      </div>
+    </div>
+{blocks}
+  </section>"""
+
+
+def render_security_section(disclosures: list[dict], profiles: list[dict]) -> str:
+    if not disclosures and not profiles:
+        return ""
+
+    blocks: list[str] = []
+
+    if disclosures:
+        rows = []
+        for d in disclosures:
+            href = d.get("writeup") or d.get("ref") or ""
+            meta_bits = [html.escape(d["date"])]
+            if d.get("target"):
+                meta_bits.append(html.escape(d["target"]))
+            if d.get("status"):
+                meta_bits.append(html.escape(d["status"]))
+            meta = " &middot; ".join(meta_bits)
+
+            summary = " ".join(d.get("summary", "").split())
+            summary_html = (
+                f'\n          <p class="disclosure__summary">{html.escape(summary)}</p>'
+                if summary
+                else ""
+            )
+            tail = (
+                f'\n          <span class="disclosure__link">Read the writeup &rarr;</span>'
+                if d.get("writeup")
+                else ""
+            )
+
+            open_tag = (
+                f'<a class="disclosure__row" href="{html.escape(href)}"'
+                + (' rel="noopener"' if href.startswith("http") else "")
+                + ">"
+                if href
+                else '<div class="disclosure__row">'
+            )
+            close_tag = "</a>" if href else "</div>"
+
+            rows.append(
+                f"""        <li class="disclosure" data-node="{slugify(d['title'])}"{
+                    f' data-node-href="{html.escape(href)}"' if href else ''}>
+          {open_tag}
+            <span class="disclosure__sev" data-sev="{html.escape(d['severity'])}">{html.escape(d['severity'])}</span>
+            <span class="disclosure__body">
+              <span class="disclosure__title">{html.escape(d['title'])}</span>
+              <span class="disclosure__meta">{meta}</span>{summary_html}{tail}
+            </span>
+          {close_tag}
+        </li>"""
+            )
+
+        blocks.append(
+            '    <h3 class="subhead">Disclosures</h3>\n'
+            '    <ul class="disclosure-list" data-reveal>\n'
+            + "\n".join(rows)
+            + "\n    </ul>"
+        )
+
+    if profiles:
+        chips = []
+        for p in profiles:
+            note = (
+                f'<span class="profile__note">{html.escape(p["note"])}</span>'
+                if p.get("note")
+                else ""
+            )
+            handle = (
+                f'<span class="profile__handle">@{html.escape(p["handle"])}</span>'
+                if p.get("handle")
+                else ""
+            )
+            chips.append(
+                f"""        <li><a class="profile" href="{html.escape(p['url'])}" rel="noopener"
+               data-node="{slugify(p['name'])}" data-node-href="{html.escape(p['url'])}">
+          <span class="profile__name">{html.escape(p['name'])}</span>
+          {handle}{note}
+        </a></li>"""
+            )
+
+        blocks.append(
+            '    <h3 class="subhead">Profiles</h3>\n'
+            '    <ul class="profile-grid" data-reveal>\n'
+            + "\n".join(chips)
+            + "\n    </ul>"
+        )
+
+    return SECURITY_SECTION.format(blocks="\n\n".join(blocks))
+
+
+SECURITY_NAV = '<a class="nav__link" href="#security">security</a>'
+
+
 WRITING_SECTION = """  <!-- ================= WRITING ================= -->
   <section class="section wrap" id="writing" data-dir="writing">
     <div class="section__head" data-reveal>
@@ -827,6 +983,7 @@ def build(include_drafts: bool = False, quiet: bool = False) -> list[Post]:
     # loads succeed keeps a bad projects.toml from leaving the site half-built.
     posts = load_posts(include_drafts)
     projects = load_projects()
+    disclosures, profiles = load_security()
 
     def say(msg: str) -> None:
         if not quiet:
@@ -867,6 +1024,26 @@ def build(include_drafts: bool = False, quiet: bool = False) -> list[Post]:
         WRITING_NAV_END,
     ):
         say(f"  updated  index.html (nav link: {'shown' if posts else 'hidden'})")
+
+    has_security = bool(disclosures or profiles)
+    if splice(
+        home,
+        render_security_section(disclosures, profiles),
+        SECURITY_START,
+        SECURITY_END,
+        indent="  ",
+    ):
+        say(
+            f"  updated  index.html (security: {len(disclosures)} disclosure(s), "
+            f"{len(profiles)} profile(s))"
+        )
+    if splice(
+        home,
+        SECURITY_NAV if has_security else "",
+        SECURITY_NAV_START,
+        SECURITY_NAV_END,
+    ):
+        say(f"  updated  index.html (security nav: {'shown' if has_security else 'hidden'})")
 
     if splice(
         ROOT / "index.html",

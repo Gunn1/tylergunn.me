@@ -1,0 +1,52 @@
+# Security research — the "#security" section on the home page.
+#
+# Edit this file, then run:  python3 build.py
+#
+# Two independent lists. Either can be empty; an empty one is simply not
+# rendered, and if both are empty the whole section and its nav link disappear.
+
+# ---------------------------------------------------------------------------
+# Disclosures — vulnerabilities found and reported.
+#
+#   severity : critical | high | medium | low   (controls the badge colour)
+#   status   : free text, e.g. remediated / reported / no response
+#   writeup  : optional link to a post on this site
+#   ref      : optional external link (CVE, advisory, vendor bulletin)
+# ---------------------------------------------------------------------------
+
+[[disclosure]]
+title = "Multi-stage attack chain in an ISP's LibreNMS monitoring platform"
+target = "Regional ISP"
+date = "2026-03"
+severity = "critical"
+status = "remediated in one week"
+summary = """
+Broken access control, stored XSS, and unsandboxed Blade templates chained from
+a read-only customer account to remote code execution, exposing plaintext SNMP
+community strings for 17 backbone devices. Validated in an isolated lab replica;
+no production testing. The vendor rebuilt their entire server stack.
+"""
+writeup = "/writing/isp-monitoring-disclosure/"
+
+
+# ---------------------------------------------------------------------------
+# Platform profiles — HackTheBox, TryHackMe, picoCTF, and so on.
+#
+#   name   : platform name
+#   handle : your username there
+#   url    : public profile link
+#   note   : optional, e.g. a rank or completion count
+#
+# Add one block per platform. Delete them all and the subsection disappears.
+# ---------------------------------------------------------------------------
+
+# [[profile]]
+# name = "TryHackMe"
+# handle = "yourhandle"
+# url = "https://tryhackme.com/p/yourhandle"
+# note = "Top 5%"
+
+# [[profile]]
+# name = "HackTheBox"
+# handle = "yourhandle"
+# url = "https://app.hackthebox.com/profile/000000"
