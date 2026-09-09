@@ -14,6 +14,7 @@ Standard library only — no pip install, no virtualenv, nothing to keep alive.
 
 Usage:
     python3 build.py              build once
+    python3 build.py --dev        live preview: serve + watch + auto-refresh
     python3 build.py --serve      build, then serve on :8000
     python3 build.py --watch      rebuild whenever a source file changes
     python3 build.py --new "Title of a new post"
@@ -26,10 +27,12 @@ import dataclasses
 import datetime as dt
 import html
 import http.server
+import os
 import re
 import shutil
 import socketserver
 import sys
+import threading
 import time
 import tomllib
 import unicodedata
@@ -841,17 +844,24 @@ def new_post(title: str) -> Path:
     return path
 
 
+WATCHED = lambda: [ROOT / "build.py", SRC, PROJECTS_TOML]
+
+
+def snapshot() -> dict[Path, float]:
+    stamps: dict[Path, float] = {}
+    for target in WATCHED():
+        files = target.rglob("*") if target.is_dir() else [target]
+        for f in files:
+            if f.is_file():
+                stamps[f] = f.stat().st_mtime
+    return stamps
+
+
 def watch() -> None:
-    watched = [ROOT / "build.py", SRC, PROJECTS_TOML]
     print("watching for changes — Ctrl-C to stop")
     last: dict[Path, float] = {}
     while True:
-        stamps = {}
-        for target in watched:
-            files = target.rglob("*") if target.is_dir() else [target]
-            for f in files:
-                if f.is_file():
-                    stamps[f] = f.stat().st_mtime
+        stamps = snapshot()
         if stamps != last:
             if last:
                 print(f"\n[{dt.datetime.now():%H:%M:%S}] rebuilding")
@@ -861,6 +871,133 @@ def watch() -> None:
                 print(f"  error: {exc}", file=sys.stderr)
             last = stamps
         time.sleep(0.6)
+
+
+# ---------------------------------------------------------------------------
+# Live preview
+# ---------------------------------------------------------------------------
+
+RELOAD_PATH = "/__reload"
+
+# Bumped on every successful rebuild. Open SSE connections watch it and tell
+# the browser to refresh. A plain int is enough — writes only ever happen on
+# the watcher thread, and a stale read just means one extra poll cycle.
+_generation = 0
+
+# Injected into HTML *as it is served*, never written to disk, so the files
+# that get committed and deployed stay free of dev-only scripting.
+LIVE_RELOAD_JS = """
+<script>
+(function () {
+  var es = new EventSource("%s");
+  es.onmessage = function () { location.reload(); };
+  es.onerror = function () { /* server went away; EventSource retries */ };
+})();
+</script>
+""" % RELOAD_PATH
+
+
+class DevHandler(http.server.SimpleHTTPRequestHandler):
+    protocol_version = "HTTP/1.1"
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, directory=str(ROOT), **kwargs)
+
+    def do_GET(self):  # noqa: N802 - name fixed by the base class
+        if self.path.split("?")[0] == RELOAD_PATH:
+            return self.stream_reloads()
+
+        path = self.translate_path(self.path)
+        if os.path.isdir(path):
+            path = os.path.join(path, "index.html")
+        if path.endswith(".html") and os.path.isfile(path):
+            return self.send_html(path)
+
+        return super().do_GET()
+
+    def send_html(self, path: str) -> None:
+        try:
+            body = Path(path).read_bytes()
+        except OSError:
+            self.send_error(404)
+            return
+
+        marker = b"</body>"
+        if marker in body:
+            body = body.replace(marker, LIVE_RELOAD_JS.encode() + marker, 1)
+        else:
+            body += LIVE_RELOAD_JS.encode()
+
+        self.send_response(200)
+        self.send_header("Content-Type", "text/html; charset=utf-8")
+        self.send_header("Content-Length", str(len(body)))
+        self.send_header("Cache-Control", "no-store")
+        self.end_headers()
+        self.wfile.write(body)
+
+    def stream_reloads(self) -> None:
+        self.send_response(200)
+        self.send_header("Content-Type", "text/event-stream")
+        self.send_header("Cache-Control", "no-store")
+        self.send_header("Connection", "keep-alive")
+        self.end_headers()
+
+        seen = _generation
+        try:
+            while True:
+                if _generation != seen:
+                    seen = _generation
+                    self.wfile.write(b"data: reload\n\n")
+                else:
+                    self.wfile.write(b": keepalive\n\n")  # keeps proxies happy
+                self.wfile.flush()
+                time.sleep(0.4)
+        except (BrokenPipeError, ConnectionResetError):
+            pass  # tab closed or navigated away
+
+    def end_headers(self):
+        if not self.path.split("?")[0] == RELOAD_PATH:
+            self.send_header("Cache-Control", "no-store")
+        super().end_headers()
+
+    def log_message(self, fmt, *args):
+        pass
+
+
+def dev(port: int) -> None:
+    """Build, serve, watch, and refresh the browser on every rebuild."""
+
+    def watcher() -> None:
+        global _generation
+        last = snapshot()
+        while True:
+            time.sleep(0.5)
+            stamps = snapshot()
+            if stamps == last:
+                continue
+            last = stamps
+            stamp = f"[{dt.datetime.now():%H:%M:%S}]"
+            try:
+                build(include_drafts=True, quiet=True)
+                _generation += 1
+                print(f"{stamp} rebuilt — browser refreshing")
+            except BuildError as exc:
+                # Leave the last good build on screen rather than reloading
+                # into a broken page.
+                print(f"{stamp} build failed: {exc}", file=sys.stderr)
+
+    threading.Thread(target=watcher, daemon=True).start()
+
+    http.server.ThreadingHTTPServer.allow_reuse_address = True
+    with http.server.ThreadingHTTPServer(("127.0.0.1", port), DevHandler) as httpd:
+        print(f"\n  live preview  http://localhost:{port}/")
+        print("  editing       content/writeups/*.md, content/projects.toml")
+        print("  drafts        included")
+        print("\n  save a file and the browser reloads itself. Ctrl-C to stop.\n")
+        try:
+            httpd.serve_forever()
+        except KeyboardInterrupt:
+            print("\nstopped")
 
 
 def serve(port: int) -> None:
@@ -886,9 +1023,14 @@ def serve(port: int) -> None:
 
 def main() -> int:
     ap = argparse.ArgumentParser(description="Build tylergunn.me writeups.")
+    ap.add_argument(
+        "--dev",
+        action="store_true",
+        help="live preview: serve, watch, and auto-refresh the browser",
+    )
     ap.add_argument("--serve", action="store_true", help="build, then serve locally")
     ap.add_argument("--watch", action="store_true", help="rebuild on file change")
-    ap.add_argument("--port", type=int, default=8000, help="port for --serve")
+    ap.add_argument("--port", type=int, default=8000, help="port for --dev/--serve")
     ap.add_argument("--drafts", action="store_true", help="include posts marked draft")
     ap.add_argument("--new", metavar="TITLE", help="scaffold a new post and exit")
     args = ap.parse_args()
@@ -897,6 +1039,11 @@ def main() -> int:
         if args.new:
             path = new_post(args.new)
             print(f"created {path.relative_to(ROOT)}")
+            return 0
+
+        if args.dev:
+            build(include_drafts=True)
+            dev(args.port)
             return 0
 
         if args.watch:

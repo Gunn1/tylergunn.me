@@ -74,10 +74,29 @@ leave the site half-rebuilt.
 
 ```sh
 python3 build.py --new "Title of the post"   # scaffolds content/writeups/<date>-<slug>.md
-python3 build.py --watch                     # rebuild on save, drafts included
+python3 build.py --dev                       # live preview — see below
+python3 build.py --watch                     # rebuild on save, no server
 python3 build.py --serve                     # build once, then serve on :8000
 python3 build.py                             # build once, skipping drafts
 ```
+
+### Live preview
+
+```sh
+python3 build.py --dev
+```
+
+Serves on <http://localhost:8000>, watches `content/`, rebuilds on save, and
+**reloads the browser by itself**. Drafts are included. Write Markdown in one
+window, watch it render in the other.
+
+How it works: the dev server holds a Server-Sent Events connection at
+`/__reload` and injects a four-line listener into HTML *as it is served*. The
+files on disk never contain it, so nothing dev-only can reach production.
+
+If a build fails, the browser is deliberately **not** reloaded — the last good
+page stays on screen and the error is printed to the terminal, so you don't lose
+your place to a half-rendered page.
 
 Each Markdown file starts with a front matter block:
 
