@@ -1,10 +1,14 @@
-# Cloudflare Pages redirects. One rule per line: <from> <to> <status>
-# Canonical host — send the www subdomain to the apex.
-https://www.tylergunn.me/*  https://tylergunn.me/:splat  301!
+# Cloudflare redirects. One rule per line: <from> <to> <status>
+#
+# Workers static assets only accepts RELATIVE urls, in both the source and the
+# destination. An absolute url fails the whole deploy with
+# "Only relative URLs are allowed [code: 100324]".
+#
+# So www -> apex is not done here — set it up as a Redirect Rule in the
+# dashboard, or attach only the apex as a custom domain. External shortlinks
+# (/gh, /li) are not possible here either.
 
 # Friendly short paths.
 /blog/*      /writing/:splat   301
 /posts/*     /writing/:splat   301
 /rss         /feed.xml         301
-/gh          https://github.com/Gunn1        302
-/li          https://www.linkedin.com/in/tyler-gunn-5ab508242/  302

@@ -1,0 +1,21 @@
+# Belt-and-braces. The deploy should point at dist/, which only ever contains
+# the files build.py explicitly copies — but if the assets directory is ever
+# set back to the repo root, these must not be published.
+#
+# This matters: a deploy from the repo root uploads .git, which publishes the
+# entire commit history to anyone who asks for it.
+
+.git
+.github
+.wrangler
+.writeup
+dist
+
+content
+*.py
+.python-version
+README.md
+.gitignore
+.assetsignore
+wrangler.jsonc
+wrangler.toml

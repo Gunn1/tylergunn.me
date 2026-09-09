@@ -861,6 +861,59 @@ WRITING_SECTION = """  <!-- ================= WRITING ================= -->
     </ul>
   </section>"""
 
+# ---------------------------------------------------------------------------
+# Deploy bundle
+# ---------------------------------------------------------------------------
+
+DIST = ROOT / "dist"
+
+# An explicit allowlist, not an ignore list. Anything not named here never
+# reaches the CDN — so adding a private file to the repo cannot accidentally
+# publish it. The first deploy attempt uploaded the entire .git directory
+# because the asset root was the repo root; this exists so that cannot recur.
+PUBLISH = [
+    "index.html",
+    "404.html",
+    "robots.txt",
+    "sitemap.xml",
+    "feed.xml",
+    "_headers",
+    "_redirects",
+    "assets",
+    "writing",
+]
+
+# Files that would be a problem if they ever showed up in dist/.
+NEVER_PUBLISH = {".git", ".env", ".writeup", "content", "build.py", "ctftime.py", "writeup.py"}
+
+
+def assemble_dist(quiet: bool = False) -> int:
+    """Copy the publishable files into dist/. Returns the file count."""
+    if DIST.exists():
+        shutil.rmtree(DIST)
+    DIST.mkdir()
+
+    for name in PUBLISH:
+        src = ROOT / name
+        if not src.exists():
+            continue
+        if src.is_dir():
+            shutil.copytree(src, DIST / name)
+        else:
+            shutil.copy2(src, DIST / name)
+
+    # Cheap assertion rather than trust: nothing sensitive made it in.
+    for path in DIST.rglob("*"):
+        rel = path.relative_to(DIST)
+        if rel.parts[0] in NEVER_PUBLISH:
+            raise BuildError(f"refusing to publish {rel} — it is in NEVER_PUBLISH")
+
+    count = sum(1 for p in DIST.rglob("*") if p.is_file())
+    if not quiet:
+        print(f"  bundled  dist/ ({count} files)")
+    return count
+
+
 NAV_START = "<!-- nav:start -->"
 NAV_END = "<!-- nav:end -->"
 
@@ -1090,6 +1143,8 @@ def build(include_drafts: bool = False, quiet: bool = False) -> list[Post]:
     (ROOT / "feed.xml").write_text(render_feed(posts), encoding="utf-8")
     (ROOT / "sitemap.xml").write_text(render_sitemap(posts), encoding="utf-8")
     say("  wrote    feed.xml, sitemap.xml")
+
+    assemble_dist(quiet=quiet)
 
     say(f"\n{len(posts)} post(s) built.")
     return posts

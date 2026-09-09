@@ -1,0 +1,14 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "tylergunn-me",
+  "compatibility_date": "2026-09-08",
+  "observability": { "enabled": true },
+
+  // Serve ONLY the assembled bundle. Wrangler previously auto-detected "."
+  // and uploaded the whole repo, including .git — which would have published
+  // the entire commit history. dist/ contains only what build.py copies.
+  "assets": {
+    "directory": "./dist",
+    "not_found_handling": "404-page"
+  }
+}
