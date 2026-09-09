@@ -8,8 +8,12 @@ only tooling is `build.py`, which uses nothing outside the standard library.
 
 ```
 .
-├── build.py                writeup builder (stdlib only)
-├── content/writeups/*.md   ← you edit these
+├── build.py                projects + writeups builder (stdlib only)
+├── ctftime.py              pulls CTF results from the CTFtime API
+├── content/
+│   ├── projects.toml       ← "Selected work" cards
+│   ├── writeups/*.md       ← blog posts
+│   └── ctf.json            cached CTF results (generated)
 ├── index.html              home — hero, work, writing, about, contact
 ├── 404.html                terminal-flavoured not-found page
 ├── writing/
@@ -28,6 +32,43 @@ only tooling is `build.py`, which uses nothing outside the standard library.
 ├── sitemap.xml             (generated)
 └── feed.xml                (generated)
 ```
+
+## Editing "Selected work"
+
+Projects live in `content/projects.toml`. Edit that file, then run
+`python3 build.py`. Order in the file is order on the page.
+
+```toml
+[[project]]
+name = "sentinel"
+kind = "tool"          # tool (green) | research (amber) | anything else (grey)
+featured = true        # at most one — gets the wide card with the code pane
+description = """
+Prose. Wraps however you like; whitespace is collapsed.
+"""
+tags = ["Python", "asyncio", "recon"]
+source = "https://github.com/tylergunn/sentinel"   # optional
+writeup = "/writing/asyncio-recon/"                # optional
+demo = "https://example.com"                       # optional
+
+code_filename = "sentinel — scanner.py"            # featured card only
+code = '''
+# keep lines to ~44 chars or the pane scrolls
+sem = asyncio.Semaphore(cfg.workers)
+'''
+```
+
+Only `name` and `description` are required. The `code` block is syntax
+highlighted automatically — a small Python highlighter in `build.py`, no
+dependency.
+
+To add a project, append a `[[project]]` block. To remove one, delete its block.
+To reorder, move the blocks.
+
+The build refuses to write anything if the file is malformed: invalid TOML, a
+missing `name`/`description`, more than one `featured`, or no projects at all.
+Sources are parsed and validated before any file is written, so a typo can't
+leave the site half-rebuilt.
 
 ## Writing a post
 
@@ -156,8 +197,8 @@ needing it at all.)
 Everything below is placeholder content written to make the layout real. Search
 for these and swap in your own:
 
-- [ ] **Projects** — the four cards in `index.html` (`sentinel`, `glasshouse`,
-      `cutline`, `this-site`) and their GitHub URLs
+- [ ] **Projects** — the four entries in `content/projects.toml` (`sentinel`,
+      `glasshouse`, `cutline`, `tylergunn.me`) and their GitHub URLs
 - [ ] **Posts** — the three files in `content/writeups/`. These are invented;
       replace or delete them and run `python3 build.py`
 - [ ] **Stats** — "Years building" (6) and "Projects shipped" (24) in the hero

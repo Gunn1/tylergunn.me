@@ -172,8 +172,7 @@
     </div>
 
     <div class="card-grid">
-
-      <!-- Featured -->
+      <!-- projects:start -->
       <article class="card card--featured" data-reveal
                data-node="sentinel" data-node-href="https://github.com/tylergunn/sentinel">
         <div class="card__body">
@@ -181,12 +180,7 @@
             <h3 class="card__title"><a href="https://github.com/tylergunn/sentinel">sentinel</a></h3>
             <span class="card__kind" data-kind="tool">tool</span>
           </div>
-          <p class="card__desc">
-            A fast, concurrent network reconnaissance scanner built on asyncio.
-            Fingerprints services, diffs results between runs, and screams when something
-            on your perimeter changes that shouldn't have. Built because commercial ASM
-            tooling is priced for enterprises and I wanted the same signal for a homelab.
-          </p>
+          <p class="card__desc">A fast, concurrent network reconnaissance scanner built on asyncio. Fingerprints services, diffs results between runs, and screams when something on your perimeter changes that shouldn&#x27;t have. Built because commercial ASM tooling is priced for enterprises and I wanted the same signal for a homelab.</p>
           <div class="card__meta">
             <span class="tag">Python</span>
             <span class="tag">asyncio</span>
@@ -194,17 +188,10 @@
             <span class="tag">netsec</span>
           </div>
           <div class="card__links">
-            <a href="https://github.com/tylergunn/sentinel">
-              <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 .5C5.7.5.5 5.7.5 12a11.5 11.5 0 0 0 7.9 10.9c.6.1.8-.2.8-.6v-2c-3.2.7-3.9-1.5-3.9-1.5-.5-1.4-1.3-1.7-1.3-1.7-1-.7.1-.7.1-.7 1.1.1 1.7 1.2 1.7 1.2 1 1.7 2.7 1.2 3.4.9.1-.7.4-1.2.7-1.5-2.6-.3-5.3-1.3-5.3-5.7 0-1.3.5-2.3 1.2-3.1-.1-.3-.5-1.5.1-3.1 0 0 1-.3 3.3 1.2a11.4 11.4 0 0 1 6 0C17.5 4.6 18.5 5 18.5 5c.6 1.6.2 2.8.1 3.1.8.8 1.2 1.8 1.2 3.1 0 4.4-2.7 5.4-5.3 5.7.4.4.8 1.1.8 2.2v3.3c0 .4.2.7.8.6A11.5 11.5 0 0 0 23.5 12C23.5 5.7 18.3.5 12 .5z"/></svg>
-              Source
-            </a>
-            <a href="/writing/">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-              Writeup
-            </a>
+            <a href="https://github.com/tylergunn/sentinel" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 .5C5.7.5.5 5.7.5 12a11.5 11.5 0 0 0 7.9 10.9c.6.1.8-.2.8-.6v-2c-3.2.7-3.9-1.5-3.9-1.5-.5-1.4-1.3-1.7-1.3-1.7-1-.7.1-.7.1-.7 1.1.1 1.7 1.2 1.7 1.2 1 1.7 2.7 1.2 3.4.9.1-.7.4-1.2.7-1.5-2.6-.3-5.3-1.3-5.3-5.7 0-1.3.5-2.3 1.2-3.1-.1-.3-.5-1.5.1-3.1 0 0 1-.3 3.3 1.2a11.4 11.4 0 0 1 6 0C17.5 4.6 18.5 5 18.5 5c.6 1.6.2 2.8.1 3.1.8.8 1.2 1.8 1.2 3.1 0 4.4-2.7 5.4-5.3 5.7.4.4.8 1.1.8 2.2v3.3c0 .4.2.7.8.6A11.5 11.5 0 0 0 23.5 12C23.5 5.7 18.3.5 12 .5z"/></svg>Source</a>
+            <a href="/writing/asyncio-recon/"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Writeup</a>
           </div>
         </div>
-
         <div class="card__aside">
           <div class="code-pane" aria-hidden="true">
             <div class="code-pane__bar">
@@ -213,94 +200,75 @@
               <span class="code-pane__dot"></span>
               <span style="margin-left:.4rem">sentinel — scanner.py</span>
             </div>
-            <div class="code-pane__body"><span class="c-com"># fan out across the target set, bounded</span>
+            <div class="code-pane__body"><span class="c-com"># bounded fan-out across the target set</span>
 sem = asyncio.Semaphore(cfg.workers)
 
-<span class="c-key">async def</span> probe(t: Target) -&gt; Result | <span class="c-key">None</span>:
-    <span class="c-key">async with</span> sem:
+<span class="c-key">async</span> <span class="c-key">def</span> probe(t: Target) -&gt; Result | <span class="c-key">None</span>:
+    <span class="c-key">async</span> <span class="c-key">with</span> sem:
         <span class="c-key">try</span>:
-            <span class="c-key">return await</span> fingerprint(t, timeout=cfg.timeout)
-        <span class="c-key">except</span> (OSError, asyncio.TimeoutError):
-            log.warning(<span class="c-str">"probe failed"</span>, extra={<span class="c-str">"target"</span>: t})
-            <span class="c-key">return None</span>
+            <span class="c-key">return</span> <span class="c-key">await</span> fingerprint(t)
+        <span class="c-key">except</span> (OSError, TimeoutError):
+            log.warning(<span class="c-str">"probe failed"</span>, t=t)
+            <span class="c-key">return</span> <span class="c-key">None</span>
 
-results = [r <span class="c-key">for</span> r <span class="c-key">in await</span> asyncio.gather(*map(probe, targets))
-           <span class="c-key">if</span> r <span class="c-key">is not None</span>]</div>
+done = <span class="c-key">await</span> gather(*map(probe, targets))
+results = [r <span class="c-key">for</span> r <span class="c-key">in</span> done <span class="c-key">if</span> r]</div>
           </div>
         </div>
       </article>
 
       <article class="card" data-reveal style="--reveal-delay:60ms"
                data-node="glasshouse" data-node-href="https://github.com/tylergunn/glasshouse">
-        <div class="card__top">
-          <h3 class="card__title"><a href="https://github.com/tylergunn/glasshouse">glasshouse</a></h3>
-          <span class="card__kind" data-kind="research">research</span>
-        </div>
-        <p class="card__desc">
-          A deliberately vulnerable microservice stack for practising container escape
-          and lateral movement. Ships with a scoring harness so you know when you've
-          actually rooted it.
-        </p>
-        <div class="card__meta">
-          <span class="tag">Docker</span>
-          <span class="tag">Python</span>
-          <span class="tag">training</span>
-        </div>
-        <div class="card__links">
-          <a href="https://github.com/tylergunn/glasshouse">
-            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 .5C5.7.5.5 5.7.5 12a11.5 11.5 0 0 0 7.9 10.9c.6.1.8-.2.8-.6v-2c-3.2.7-3.9-1.5-3.9-1.5-.5-1.4-1.3-1.7-1.3-1.7-1-.7.1-.7.1-.7 1.1.1 1.7 1.2 1.7 1.2 1 1.7 2.7 1.2 3.4.9.1-.7.4-1.2.7-1.5-2.6-.3-5.3-1.3-5.3-5.7 0-1.3.5-2.3 1.2-3.1-.1-.3-.5-1.5.1-3.1 0 0 1-.3 3.3 1.2a11.4 11.4 0 0 1 6 0C17.5 4.6 18.5 5 18.5 5c.6 1.6.2 2.8.1 3.1.8.8 1.2 1.8 1.2 3.1 0 4.4-2.7 5.4-5.3 5.7.4.4.8 1.1.8 2.2v3.3c0 .4.2.7.8.6A11.5 11.5 0 0 0 23.5 12C23.5 5.7 18.3.5 12 .5z"/></svg>
-            Source
-          </a>
-        </div>
+          <div class="card__top">
+            <h3 class="card__title"><a href="https://github.com/tylergunn/glasshouse">glasshouse</a></h3>
+            <span class="card__kind" data-kind="research">research</span>
+          </div>
+          <p class="card__desc">A deliberately vulnerable microservice stack for practising container escape and lateral movement. Ships with a scoring harness so you know when you&#x27;ve actually rooted it.</p>
+          <div class="card__meta">
+            <span class="tag">Docker</span>
+            <span class="tag">Python</span>
+            <span class="tag">training</span>
+          </div>
+          <div class="card__links">
+            <a href="https://github.com/tylergunn/glasshouse" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 .5C5.7.5.5 5.7.5 12a11.5 11.5 0 0 0 7.9 10.9c.6.1.8-.2.8-.6v-2c-3.2.7-3.9-1.5-3.9-1.5-.5-1.4-1.3-1.7-1.3-1.7-1-.7.1-.7.1-.7 1.1.1 1.7 1.2 1.7 1.2 1 1.7 2.7 1.2 3.4.9.1-.7.4-1.2.7-1.5-2.6-.3-5.3-1.3-5.3-5.7 0-1.3.5-2.3 1.2-3.1-.1-.3-.5-1.5.1-3.1 0 0 1-.3 3.3 1.2a11.4 11.4 0 0 1 6 0C17.5 4.6 18.5 5 18.5 5c.6 1.6.2 2.8.1 3.1.8.8 1.2 1.8 1.2 3.1 0 4.4-2.7 5.4-5.3 5.7.4.4.8 1.1.8 2.2v3.3c0 .4.2.7.8.6A11.5 11.5 0 0 0 23.5 12C23.5 5.7 18.3.5 12 .5z"/></svg>Source</a>
+          </div>
       </article>
 
       <article class="card" data-reveal style="--reveal-delay:120ms"
                data-node="cutline" data-node-href="https://github.com/tylergunn/cutline">
-        <div class="card__top">
-          <h3 class="card__title"><a href="https://github.com/tylergunn/cutline">cutline</a></h3>
-          <span class="card__kind" data-kind="tool">tool</span>
-        </div>
-        <p class="card__desc">
-          A Python CLI that turns messy packet captures into readable session
-          transcripts. Streams straight off the wire, reassembles TCP flows lazily, and
-          stays flat in memory on captures far bigger than RAM.
-        </p>
-        <div class="card__meta">
-          <span class="tag">Python</span>
-          <span class="tag">pcap</span>
-          <span class="tag">generators</span>
-        </div>
-        <div class="card__links">
-          <a href="https://github.com/tylergunn/cutline">
-            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 .5C5.7.5.5 5.7.5 12a11.5 11.5 0 0 0 7.9 10.9c.6.1.8-.2.8-.6v-2c-3.2.7-3.9-1.5-3.9-1.5-.5-1.4-1.3-1.7-1.3-1.7-1-.7.1-.7.1-.7 1.1.1 1.7 1.2 1.7 1.2 1 1.7 2.7 1.2 3.4.9.1-.7.4-1.2.7-1.5-2.6-.3-5.3-1.3-5.3-5.7 0-1.3.5-2.3 1.2-3.1-.1-.3-.5-1.5.1-3.1 0 0 1-.3 3.3 1.2a11.4 11.4 0 0 1 6 0C17.5 4.6 18.5 5 18.5 5c.6 1.6.2 2.8.1 3.1.8.8 1.2 1.8 1.2 3.1 0 4.4-2.7 5.4-5.3 5.7.4.4.8 1.1.8 2.2v3.3c0 .4.2.7.8.6A11.5 11.5 0 0 0 23.5 12C23.5 5.7 18.3.5 12 .5z"/></svg>
-            Source
-          </a>
-        </div>
+          <div class="card__top">
+            <h3 class="card__title"><a href="https://github.com/tylergunn/cutline">cutline</a></h3>
+            <span class="card__kind" data-kind="tool">tool</span>
+          </div>
+          <p class="card__desc">A Python CLI that turns messy packet captures into readable session transcripts. Streams straight off the wire, reassembles TCP flows lazily, and stays flat in memory on captures far bigger than RAM.</p>
+          <div class="card__meta">
+            <span class="tag">Python</span>
+            <span class="tag">pcap</span>
+            <span class="tag">generators</span>
+          </div>
+          <div class="card__links">
+            <a href="https://github.com/tylergunn/cutline" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 .5C5.7.5.5 5.7.5 12a11.5 11.5 0 0 0 7.9 10.9c.6.1.8-.2.8-.6v-2c-3.2.7-3.9-1.5-3.9-1.5-.5-1.4-1.3-1.7-1.3-1.7-1-.7.1-.7.1-.7 1.1.1 1.7 1.2 1.7 1.2 1 1.7 2.7 1.2 3.4.9.1-.7.4-1.2.7-1.5-2.6-.3-5.3-1.3-5.3-5.7 0-1.3.5-2.3 1.2-3.1-.1-.3-.5-1.5.1-3.1 0 0 1-.3 3.3 1.2a11.4 11.4 0 0 1 6 0C17.5 4.6 18.5 5 18.5 5c.6 1.6.2 2.8.1 3.1.8.8 1.2 1.8 1.2 3.1 0 4.4-2.7 5.4-5.3 5.7.4.4.8 1.1.8 2.2v3.3c0 .4.2.7.8.6A11.5 11.5 0 0 0 23.5 12C23.5 5.7 18.3.5 12 .5z"/></svg>Source</a>
+          </div>
       </article>
 
       <article class="card" data-reveal style="--reveal-delay:180ms"
-               data-node="this-site" data-node-href="https://github.com/tylergunn/tylergunn.me">
-        <div class="card__top">
-          <h3 class="card__title"><a href="https://github.com/tylergunn/tylergunn.me">tylergunn.me</a></h3>
-          <span class="card__kind">web</span>
-        </div>
-        <p class="card__desc">
-          This site. Hand-written HTML, CSS and JavaScript — no framework, no build step,
-          no third-party requests. The terminal you can summon with <kbd>`</kbd> reads the
-          real page, so it can never drift out of sync with the content.
-        </p>
-        <div class="card__meta">
-          <span class="tag">vanilla JS</span>
-          <span class="tag">0 deps</span>
-          <span class="tag">Cloudflare</span>
-        </div>
-        <div class="card__links">
-          <a href="https://github.com/tylergunn/tylergunn.me">
-            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 .5C5.7.5.5 5.7.5 12a11.5 11.5 0 0 0 7.9 10.9c.6.1.8-.2.8-.6v-2c-3.2.7-3.9-1.5-3.9-1.5-.5-1.4-1.3-1.7-1.3-1.7-1-.7.1-.7.1-.7 1.1.1 1.7 1.2 1.7 1.2 1 1.7 2.7 1.2 3.4.9.1-.7.4-1.2.7-1.5-2.6-.3-5.3-1.3-5.3-5.7 0-1.3.5-2.3 1.2-3.1-.1-.3-.5-1.5.1-3.1 0 0 1-.3 3.3 1.2a11.4 11.4 0 0 1 6 0C17.5 4.6 18.5 5 18.5 5c.6 1.6.2 2.8.1 3.1.8.8 1.2 1.8 1.2 3.1 0 4.4-2.7 5.4-5.3 5.7.4.4.8 1.1.8 2.2v3.3c0 .4.2.7.8.6A11.5 11.5 0 0 0 23.5 12C23.5 5.7 18.3.5 12 .5z"/></svg>
-            Source
-          </a>
-        </div>
+               data-node="tylergunnme" data-node-href="https://github.com/tylergunn/tylergunn.me">
+          <div class="card__top">
+            <h3 class="card__title"><a href="https://github.com/tylergunn/tylergunn.me">tylergunn.me</a></h3>
+            <span class="card__kind" data-kind="web">web</span>
+          </div>
+          <p class="card__desc">This site. Hand-written HTML and CSS with Python build scripts — no framework, no npm, no third-party requests. The terminal you can summon with ` reads the real page, so it can never drift out of sync with the content.</p>
+          <div class="card__meta">
+            <span class="tag">vanilla JS</span>
+            <span class="tag">Python</span>
+            <span class="tag">0 deps</span>
+            <span class="tag">Cloudflare</span>
+          </div>
+          <div class="card__links">
+            <a href="https://github.com/tylergunn/tylergunn.me" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 .5C5.7.5.5 5.7.5 12a11.5 11.5 0 0 0 7.9 10.9c.6.1.8-.2.8-.6v-2c-3.2.7-3.9-1.5-3.9-1.5-.5-1.4-1.3-1.7-1.3-1.7-1-.7.1-.7.1-.7 1.1.1 1.7 1.2 1.7 1.2 1 1.7 2.7 1.2 3.4.9.1-.7.4-1.2.7-1.5-2.6-.3-5.3-1.3-5.3-5.7 0-1.3.5-2.3 1.2-3.1-.1-.3-.5-1.5.1-3.1 0 0 1-.3 3.3 1.2a11.4 11.4 0 0 1 6 0C17.5 4.6 18.5 5 18.5 5c.6 1.6.2 2.8.1 3.1.8.8 1.2 1.8 1.2 3.1 0 4.4-2.7 5.4-5.3 5.7.4.4.8 1.1.8 2.2v3.3c0 .4.2.7.8.6A11.5 11.5 0 0 0 23.5 12C23.5 5.7 18.3.5 12 .5z"/></svg>Source</a>
+          </div>
       </article>
+      <!-- projects:end -->
 
     </div>
   </section>

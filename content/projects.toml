@@ -1,0 +1,80 @@
+# Selected work — the "#work" section on the home page.
+#
+# Edit this file, then run:  python3 build.py
+#
+# Order here is the order on the page. Exactly one project may set
+# featured = true; it gets the wide card with the code pane beside it.
+#
+# kind controls the badge: "tool" (green), "research" (amber), anything else
+# renders in the default grey. Every field except name and description is
+# optional.
+
+[[project]]
+name = "sentinel"
+kind = "tool"
+featured = true
+description = """
+A fast, concurrent network reconnaissance scanner built on asyncio. Fingerprints
+services, diffs results between runs, and screams when something on your
+perimeter changes that shouldn't have. Built because commercial ASM tooling is
+priced for enterprises and I wanted the same signal for a homelab.
+"""
+tags = ["Python", "asyncio", "recon", "netsec"]
+source = "https://github.com/tylergunn/sentinel"
+writeup = "/writing/asyncio-recon/"
+
+# Shown in the featured card. Highlighting is applied automatically.
+code_filename = "sentinel — scanner.py"
+# Keep lines to ~44 chars. The pane is narrow, and anything longer makes it
+# scroll horizontally.
+code = '''
+# bounded fan-out across the target set
+sem = asyncio.Semaphore(cfg.workers)
+
+async def probe(t: Target) -> Result | None:
+    async with sem:
+        try:
+            return await fingerprint(t)
+        except (OSError, TimeoutError):
+            log.warning("probe failed", t=t)
+            return None
+
+done = await gather(*map(probe, targets))
+results = [r for r in done if r]
+'''
+
+
+[[project]]
+name = "glasshouse"
+kind = "research"
+description = """
+A deliberately vulnerable microservice stack for practising container escape and
+lateral movement. Ships with a scoring harness so you know when you've actually
+rooted it.
+"""
+tags = ["Docker", "Python", "training"]
+source = "https://github.com/tylergunn/glasshouse"
+
+
+[[project]]
+name = "cutline"
+kind = "tool"
+description = """
+A Python CLI that turns messy packet captures into readable session transcripts.
+Streams straight off the wire, reassembles TCP flows lazily, and stays flat in
+memory on captures far bigger than RAM.
+"""
+tags = ["Python", "pcap", "generators"]
+source = "https://github.com/tylergunn/cutline"
+
+
+[[project]]
+name = "tylergunn.me"
+kind = "web"
+description = """
+This site. Hand-written HTML and CSS with Python build scripts — no framework,
+no npm, no third-party requests. The terminal you can summon with ` reads the
+real page, so it can never drift out of sync with the content.
+"""
+tags = ["vanilla JS", "Python", "0 deps", "Cloudflare"]
+source = "https://github.com/tylergunn/tylergunn.me"

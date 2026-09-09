@@ -861,6 +861,23 @@ kbd {
   overflow-x: auto;
   white-space: pre;
   color: var(--text-dim);
+  /* A default scrollbar renders as a bright bar across the bottom of the pane
+     in dark mode, so it is themed rather than left to the platform. */
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-strong) transparent;
+}
+
+.code-pane__body::-webkit-scrollbar {
+  height: 8px;
+}
+
+.code-pane__body::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.code-pane__body::-webkit-scrollbar-thumb {
+  background: var(--border-strong);
+  border-radius: 99px;
 }
 
 .code-pane__body .c-key {

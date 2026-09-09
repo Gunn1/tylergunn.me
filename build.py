@@ -26,12 +26,12 @@ import dataclasses
 import datetime as dt
 import html
 import http.server
-import os
 import re
 import shutil
 import socketserver
 import sys
 import time
+import tomllib
 import unicodedata
 import xml.sax.saxutils as sx
 from pathlib import Path
@@ -39,6 +39,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent
 SRC = ROOT / "content" / "writeups"
 OUT = ROOT / "writing"
+PROJECTS_TOML = ROOT / "content" / "projects.toml"
 
 SITE_URL = "https://tylergunn.me"
 SITE_TITLE = "Tyler Gunn"
@@ -48,6 +49,8 @@ AUTHOR = "Tyler Gunn"
 # page stays hand-editable.
 POSTS_START = "<!-- posts:start -->"
 POSTS_END = "<!-- posts:end -->"
+PROJECTS_START = "<!-- projects:start -->"
+PROJECTS_END = "<!-- projects:end -->"
 
 HOME_POST_LIMIT = 3
 
@@ -494,18 +497,194 @@ def render_post_list(posts: list[Post]) -> str:
     return "\n".join(items)
 
 
-def splice(path: Path, replacement: str) -> bool:
-    """Replace the text between the posts markers. Returns True if changed."""
+# ---------------------------------------------------------------------------
+# Projects
+# ---------------------------------------------------------------------------
+
+ICON_GITHUB = (
+    '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 '
+    ".5C5.7.5.5 5.7.5 12a11.5 11.5 0 0 0 7.9 10.9c.6.1.8-.2.8-.6v-2c-3.2.7-3.9-1.5-3.9-1.5-."
+    "5-1.4-1.3-1.7-1.3-1.7-1-.7.1-.7.1-.7 1.1.1 1.7 1.2 1.7 1.2 1 1.7 2.7 1.2 3.4.9.1-.7.4-1"
+    ".2.7-1.5-2.6-.3-5.3-1.3-5.3-5.7 0-1.3.5-2.3 1.2-3.1-.1-.3-.5-1.5.1-3.1 0 0 1-.3 3.3 1.2"
+    "a11.4 11.4 0 0 1 6 0C17.5 4.6 18.5 5 18.5 5c.6 1.6.2 2.8.1 3.1.8.8 1.2 1.8 1.2 3.1 0 4.4"
+    "-2.7 5.4-5.3 5.7.4.4.8 1.1.8 2.2v3.3c0 .4.2.7.8.6A11.5 11.5 0 0 0 23.5 12C23.5 5.7 18.3."
+    '5 12 .5z"/></svg>'
+)
+
+ICON_DOC = (
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" '
+    'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
+    '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>'
+    '<polyline points="14 2 14 8 20 8"/></svg>'
+)
+
+PY_KEYWORDS = {
+    "and", "as", "assert", "async", "await", "break", "class", "continue", "def",
+    "del", "elif", "else", "except", "finally", "for", "from", "global", "if",
+    "import", "in", "is", "lambda", "None", "nonlocal", "not", "or", "pass",
+    "raise", "return", "True", "False", "try", "while", "with", "yield",
+}
+
+# comment | triple-quoted string | quoted string | bare word
+_TOKENS = re.compile(
+    r"""(?P<comment>\#[^\n]*)
+      | (?P<string>\"\"\"(?:.|\n)*?\"\"\"|'''(?:.|\n)*?'''|"(?:\\.|[^"\\\n])*"|'(?:\\.|[^'\\\n])*')
+      | (?P<word>[A-Za-z_]\w*)""",
+    re.VERBOSE,
+)
+
+
+def highlight(code: str) -> str:
+    """Minimal Python highlighter for the featured card's code pane.
+
+    Deliberately naive — it only has to look right on a short, well-formed
+    snippet, so it does not try to be a real lexer. Everything not matched is
+    HTML-escaped, so unmatched input is safe rather than broken.
+    """
+    out: list[str] = []
+    pos = 0
+
+    for m in _TOKENS.finditer(code):
+        out.append(html.escape(code[pos : m.start()], quote=False))
+        text = html.escape(m.group(0), quote=False)
+
+        if m.lastgroup == "comment":
+            out.append(f'<span class="c-com">{text}</span>')
+        elif m.lastgroup == "string":
+            out.append(f'<span class="c-str">{text}</span>')
+        elif m.group(0) in PY_KEYWORDS:
+            out.append(f'<span class="c-key">{text}</span>')
+        else:
+            out.append(text)
+        pos = m.end()
+
+    out.append(html.escape(code[pos:], quote=False))
+    return "".join(out)
+
+
+def load_projects() -> list[dict]:
+    if not PROJECTS_TOML.exists():
+        raise BuildError(f"missing {PROJECTS_TOML.relative_to(ROOT)}")
+
+    try:
+        data = tomllib.loads(PROJECTS_TOML.read_text(encoding="utf-8"))
+    except tomllib.TOMLDecodeError as exc:
+        raise BuildError(f"{PROJECTS_TOML.relative_to(ROOT)}: {exc}") from exc
+
+    projects = data.get("project", [])
+    if not projects:
+        raise BuildError(f"{PROJECTS_TOML.relative_to(ROOT)}: no [[project]] entries")
+
+    for p in projects:
+        for key in ("name", "description"):
+            if not p.get(key):
+                raise BuildError(
+                    f"{PROJECTS_TOML.relative_to(ROOT)}: project "
+                    f"{p.get('name', '<unnamed>')!r} is missing '{key}'"
+                )
+
+    featured = [p for p in projects if p.get("featured")]
+    if len(featured) > 1:
+        names = ", ".join(p["name"] for p in featured)
+        raise BuildError(f"only one project may set featured = true (got: {names})")
+
+    return projects
+
+
+def _links_html(p: dict) -> str:
+    links = []
+    if p.get("source"):
+        links.append(f'<a href="{html.escape(p["source"])}" rel="noopener">{ICON_GITHUB}Source</a>')
+    if p.get("writeup"):
+        links.append(f'<a href="{html.escape(p["writeup"])}">{ICON_DOC}Writeup</a>')
+    if p.get("demo"):
+        links.append(f'<a href="{html.escape(p["demo"])}" rel="noopener">{ICON_DOC}Demo</a>')
+    if not links:
+        return ""
+    return '\n          <div class="card__links">\n            ' + "\n            ".join(links) + "\n          </div>"
+
+
+def _card_inner(p: dict, indent: str) -> str:
+    tags = "".join(
+        f'\n            <span class="tag">{html.escape(t)}</span>' for t in p.get("tags", [])
+    )
+    kind = p.get("kind", "")
+    kind_attr = f' data-kind="{html.escape(kind)}"' if kind else ""
+    kind_html = f'<span class="card__kind"{kind_attr}>{html.escape(kind)}</span>' if kind else ""
+    href = p.get("source") or p.get("demo") or "#work"
+    desc = " ".join(p["description"].split())
+
+    return f"""<div class="card__top">
+            <h3 class="card__title"><a href="{html.escape(href)}">{html.escape(p['name'])}</a></h3>
+            {kind_html}
+          </div>
+          <p class="card__desc">{html.escape(desc)}</p>
+          <div class="card__meta">{tags}
+          </div>{_links_html(p)}"""
+
+
+def render_projects(projects: list[dict]) -> str:
+    cards = []
+
+    for i, p in enumerate(projects):
+        slug_name = slugify(p["name"])
+        href = p.get("source") or p.get("demo") or "#work"
+        delay = f' style="--reveal-delay:{i * 60}ms"' if i else ""
+
+        if p.get("featured"):
+            code = p.get("code", "").strip("\n")
+            aside = ""
+            if code:
+                filename = html.escape(p.get("code_filename", p["name"]))
+                aside = f"""
+        <div class="card__aside">
+          <div class="code-pane" aria-hidden="true">
+            <div class="code-pane__bar">
+              <span class="code-pane__dot"></span>
+              <span class="code-pane__dot"></span>
+              <span class="code-pane__dot"></span>
+              <span style="margin-left:.4rem">{filename}</span>
+            </div>
+            <div class="code-pane__body">{highlight(code)}</div>
+          </div>
+        </div>"""
+
+            cards.append(
+                f"""      <article class="card card--featured" data-reveal
+               data-node="{slug_name}" data-node-href="{html.escape(href)}">
+        <div class="card__body">
+          {_card_inner(p, '          ')}
+        </div>{aside}
+      </article>"""
+            )
+        else:
+            cards.append(
+                f"""      <article class="card" data-reveal{delay}
+               data-node="{slug_name}" data-node-href="{html.escape(href)}">
+          {_card_inner(p, '          ')}
+      </article>"""
+            )
+
+    return "\n\n".join(cards)
+
+
+def splice(
+    path: Path,
+    replacement: str,
+    start: str = POSTS_START,
+    end: str = POSTS_END,
+) -> bool:
+    """Replace the text between two markers. Returns True if the file changed."""
     text = path.read_text(encoding="utf-8")
-    if POSTS_START not in text or POSTS_END not in text:
+    if start not in text or end not in text:
         raise BuildError(
-            f"{path}: missing {POSTS_START} / {POSTS_END} markers — "
+            f"{path}: missing {start} / {end} markers — "
             "build.py needs them to know what to rewrite"
         )
 
-    head, rest = text.split(POSTS_START, 1)
-    _, tail = rest.split(POSTS_END, 1)
-    updated = f"{head}{POSTS_START}\n{replacement}\n      {POSTS_END}{tail}"
+    head, rest = text.split(start, 1)
+    _, tail = rest.split(end, 1)
+    updated = f"{head}{start}\n{replacement}\n      {end}{tail}"
 
     if updated == text:
         return False
@@ -586,7 +765,10 @@ def load_posts(include_drafts: bool = False) -> list[Post]:
 
 
 def build(include_drafts: bool = False, quiet: bool = False) -> list[Post]:
+    # Parse and validate every source up front. Writing files only after both
+    # loads succeed keeps a bad projects.toml from leaving the site half-built.
     posts = load_posts(include_drafts)
+    projects = load_projects()
 
     def say(msg: str) -> None:
         if not quiet:
@@ -610,7 +792,15 @@ def build(include_drafts: bool = False, quiet: bool = False) -> list[Post]:
     if splice(OUT / "index.html", render_post_list(posts)):
         say("  updated  writing/index.html")
     if splice(ROOT / "index.html", render_post_list(posts[:HOME_POST_LIMIT])):
-        say("  updated  index.html")
+        say("  updated  index.html (posts)")
+
+    if splice(
+        ROOT / "index.html",
+        render_projects(projects),
+        PROJECTS_START,
+        PROJECTS_END,
+    ):
+        say(f"  updated  index.html (projects: {len(projects)})")
 
     (ROOT / "feed.xml").write_text(render_feed(posts), encoding="utf-8")
     (ROOT / "sitemap.xml").write_text(render_sitemap(posts), encoding="utf-8")
@@ -652,7 +842,7 @@ def new_post(title: str) -> Path:
 
 
 def watch() -> None:
-    watched = [ROOT / "build.py", SRC]
+    watched = [ROOT / "build.py", SRC, PROJECTS_TOML]
     print("watching for changes — Ctrl-C to stop")
     last: dict[Path, float] = {}
     while True:
