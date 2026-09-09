@@ -788,9 +788,13 @@ def render_security_section(disclosures: list[dict], profiles: list[dict]) -> st
             )
             close_tag = "</a>" if href else "</div>"
 
+            # Built outside the f-string: a replacement field spanning a newline
+            # is PEP 701 syntax and a SyntaxError before Python 3.12, and the
+            # Cloudflare Pages build image defaults to 3.11.
+            node_href = f' data-node-href="{html.escape(href)}"' if href else ""
+
             rows.append(
-                f"""        <li class="disclosure" data-node="{slugify(d['title'])}"{
-                    f' data-node-href="{html.escape(href)}"' if href else ''}>
+                f"""        <li class="disclosure" data-node="{slugify(d['title'])}"{node_href}>
           {open_tag}
             <span class="disclosure__sev" data-sev="{html.escape(d['severity'])}">{html.escape(d['severity'])}</span>
             <span class="disclosure__body">
