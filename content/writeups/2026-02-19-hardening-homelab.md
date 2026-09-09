@@ -1,7 +1,7 @@
 ---
 title: Threat modelling a homelab like it's production
 slug: hardening-homelab
-date: 2026-02-19
+date: 2026-02-16
 description: What actually moved the needle when I stopped treating my home network as a toy.
 tags: blue team, homelab, netsec
 ---

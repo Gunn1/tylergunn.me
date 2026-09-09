@@ -9,6 +9,7 @@ only tooling is `build.py`, which uses nothing outside the standard library.
 ```
 .
 ├── build.py                projects + writeups builder (stdlib only)
+├── writeup.py              record notes while you work → a draft
 ├── ctftime.py              pulls CTF results from the CTFtime API
 ├── content/
 │   ├── projects.toml       ← "Selected work" cards
@@ -79,6 +80,42 @@ python3 build.py --watch                     # rebuild on save, no server
 python3 build.py --serve                     # build once, then serve on :8000
 python3 build.py                             # build once, skipping drafts
 ```
+
+### Recording a writeup while you work
+
+The interesting part of a writeup is the dead ends, and those are exactly what
+you've forgotten by the time you sit down to write. `writeup.py` records them as
+they happen.
+
+```sh
+./writeup.py start heap-overflow "Plaid pwn 300" --tags "pwn, glibc, ctf"
+
+./writeup.py note "length is int32, validated on the upper bound only"
+./writeup.py note --fail "chased the NULL deref — mmap_min_addr is 65536"
+./writeup.py note --win  "fake vtable on _IO_2_1_stdout_"
+./writeup.py note --takeaway "check the environment before writing the exploit"
+
+./writeup.py code exploit.py:40-58     # capture a file or line range
+./writeup.py run checksec ./chal       # run it, capture command + output
+
+./writeup.py status                    # what's recorded so far
+./writeup.py build                     # → content/writeups/<date>-<slug>.md
+```
+
+Notes file into fixed sections — **What I tried**, **Dead ends**, **What
+worked**, **Takeaways** — matching the shape of the existing posts. A code block
+lands in whichever section the note before it opened, so a snippet captured
+right after a `--fail` appears under Dead ends.
+
+`build` writes the draft with `draft: true`, so it can't publish by accident.
+It's visible under `--dev` while you rewrite the raw notes into prose; remove the
+flag when it's ready.
+
+Other commands: `list` (all sessions), `drop --yes` (delete one), and `-s <slug>`
+to act on a session other than the active one.
+
+Sessions live in `.writeup/` and are gitignored — they're working notes, not
+output. The Markdown draft is the artifact.
 
 ### Live preview
 
